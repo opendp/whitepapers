@@ -1,2 +1,2 @@
 # whitepapers
-Repository for early stage whitepaper commenting/editing
+Repository for "early stage" whitepaper commenting/editing
