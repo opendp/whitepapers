@@ -1,0 +1,287 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{fullpage}
+\usepackage[top=2cm, bottom=4.5cm, left=3.5cm, right=3.5cm]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
+\usepackage{lastpage}
+\usepackage{enumerate}
+\usepackage{fancyhdr}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{tikz}
+\newcommand{\domino}{\genfrac{[}{]}{0pt}{}}
+
+\usepackage[normalem]{ulem}
+
+\hypersetup{%
+  colorlinks=true,
+  linkcolor=blue,
+  linkbordercolor={0 0 1}
+}
+ 
+\renewcommand\lstlistingname{Algorithm}
+\renewcommand\lstlistlistingname{Algorithms}
+\def\lstlistingautorefname{Alg.}
+
+% for pseudocode -- begin
+
+\usepackage{listings, listings-rust}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% for pseudocode -- end
+
+% List of new commands
+\newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
+\newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
+\newcommand{\connor}[1]{{ {\color{teal}{(connor)~#1}}}}
+
+\newcommand{\inRust}[2]{In Rust, this is called \texttt{#1}. See \url{#2}.}
+\newcommand{\inOpenDPRust}[2]{In OpenDP (Rust), this is called \texttt{#1}. See \url{#2}.}
+
+\newcommand{\MultiSet}{\mathrm{MultiSet}}
+\newcommand{\MultiSets}{\mathrm{MultiSets}}
+\newcommand{\len}{\mathrm{len}}
+\newcommand{\din}{\mathrm{d_{in}}}
+\newcommand{\dout}{\mathrm{d_{out}}}
+\newcommand{\Relation}{\mathrm{Relation}}
+\newcommand{\question}[1]{\textcolor{red}{\textbf{Question:} #1}}
+\newcommand{\ellOne}{\mathrm{\ell_1}}
+\newcommand{\maxUsize}{\texttt{usize::MAX}}
+\newcommand{\function}{\texttt{function}}
+\newcommand{\True}{\texttt{True}}
+\newcommand{\todo}[1]{{\begin{center} \textcolor{teal}{{\huge TODO:} #1}
+\end{center}}}
+\newcommand{\mike}[1]{{ {\color{green}{(mike)~#1}}}}
+
+% convert ddmmyyyy to dd MONTH year
+\def\changeformat#1{\xchangeformat#1\relax}
+\def\xchangeformat#1/#2/#3\relax{%
+#1 %
+\ifcase#2 \or
+January\or February\or March\or April\or May\or June\or July\or
+August\or September\or October\or November\or December\fi
+\ #3}
+
+\newcommand{\permalink}[2]{This proof is based on the code in \url{#1} from \changeformat{#2}.}
+
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+\title{Privacy Proofs for OpenDP: MakeCount}
+\author{Connor Wagaman -- wagaman@college.harvard.edu}
+
+\usepackage{xcolor}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{observation}{Observation}
+\newtheorem{note}{Note}
+\newtheorem{hope}{Hope}
+\newtheorem{warning}{Warning}
+\newtheorem{problem}{Problem}
+\newtheorem{fear}{Fear}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{MakeCount}
+
+\subsection{Implementation of MakeCount in Rust}
+\label{sub:rust-implementation}
+
+\inOpenDPRust{make\_count}{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/count.rs}
+
+\permalink{https://github.com/opendp/opendp/blob/c3b5c3bd9fc50c556362b628f08c5fddea069b4d/rust/opendp/src/trans/count.rs\#L14-L27}{12/07/2021} (It is from \href{https://github.com/opendp/opendp/pull/173}{this pull request}.)
+The Rust code can also be seen below. 
+
+\begin{lstlisting}[language = Rust]
+pub fn make_count<TIA, TO>(
+) -> Fallible<Transformation<VectorDomain<AllDomain<TIA>>, AllDomain<TO>, SymmetricDistance, AbsoluteDistance<TO>>>
+    
+    where TO: ExactIntCast<usize> + One + DistanceConstant<IntDistance>, IntDistance: InfCast<TO> {
+    
+    Ok(Transformation::new(
+        VectorDomain::new_all(),
+        AllDomain::new(),
+        // think of this as: min(arg.len(), TO::MAX_CONSECUTIVE)
+        Function::new(move |arg: &Vec<TIA>|
+            TO::exact_int_cast(arg.len()).unwrap_or(TO::MAX_CONSECUTIVE)),
+        SymmetricDistance::default(),
+        AbsoluteDistance::default(),
+        StabilityRelation::new_from_constant(TO::one())))
+}
+\end{lstlisting}
+
+\subsection{Implementation of MakeCount in Python-style pseudocode, with preconditions}
+\label{sec:python-pseudocode}
+
+We now use Python-style pseudocode to present a representation of the Rust function.
+
+\emph{Recall that functions in the pseudocode are defined in the document \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}.}
+
+\emph{The use of \texttt{code}-style parameters in the preconditions section below (for example, \texttt{input\_domain}) means that this information should be passed along to the \texttt{Transformation} constructor.}
+
+Here, we use preconditions to check for traits, and to specify the domains and metrics.
+
+\textbf{Preconditions}
+\begin{itemize}
+    \item \textbf{User-specified types:} The \texttt{make\_count} function takes two inputs: a generic input type \texttt{TIA} for the \texttt{Transformation} (meaning that the input vector to \texttt{Transformation} is of type \texttt{Vec(TIA)}), and a generic output type \texttt{TO} for the \texttt{Transformation}.
+    
+    \begin{itemize}
+        \item \texttt{TO} has traits \texttt{One}, \texttt{ExactIntCast(usize)}, and \texttt{DistanceConstant(IntDistance)}
+        
+        \item \texttt{IntDistance} has trait \texttt{InfCast(TO)}
+        
+        \item \question{The final bullet point above is not needed in this proof, but it is needed in the code so a hint can be constructed (otherwise a binary search would be needed to construct the hint). Should this precondition be included here or not?}
+        
+    \end{itemize}
+    
+    \item \texttt{input\_domain}: any vector of elements of type \texttt{TIA}
+    
+    \item \texttt{output\_domain}: any value of type \texttt{TO}
+    
+    \item \texttt{input\_metric}: only \texttt{SymmetricDistance} can be used
+    
+    \item \texttt{output\_metric}: only \texttt{AbsoluteDistance} operating on type \texttt{TO} can be used
+\end{itemize}
+
+\textbf{Postconditions:} a \texttt{Transformation} must be returned (i.e. if a \texttt{Transformation} cannot be returned successfully, a runtime error should be returned)
+
+\begin{lstlisting}[language = Python, escapechar=|]
+def MakeCount(TIA, TO):
+    
+    # give the Transformation the following properties
+    max_value = get_max_consecutive_int(TO) 
+    def function(data: Vec<TIA>) -> TO:|\label{line:TO-output}|
+        try:
+            return exact_int_cast(len(data), TO)
+        except FailedCast:
+            return max_value |\label{line:except-return}|
+    def stability_relation(din: u32, dout: TO) -> bool: |\label{line:din-dout-type}|
+        return 1 * inf_cast(din,TO) <= dout |\label{line:stability-relation}|
+
+    # now, return the Transformation
+    return Transformation(input_domain,output_domain,function,input_metric,output_metric,stability_relation)
+
+\end{lstlisting}
+
+\section{Proofs for the pseudocode}
+
+\begin{theorem}
+\label{thrm:domain-and-stability}
+    For every setting of the input parameters \texttt{TIA}, \texttt{TO} for \texttt{MakeCount} such that the given preconditions hold, the \texttt{Transformation} returned by \texttt{MakeCount} has the following properties:
+    \begin{enumerate}
+        \item \textup{(Appropriate output domain).} For every vector \texttt{v} in the \texttt{input\_domain}, \texttt{function(v)} is in the \texttt{output\_domain}.
+        
+        \item \textup{(Stability guarantee).} For every input \texttt{u}, \texttt{v} drawn from the \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ is of type \texttt{u32} and $\dout$ is of type \texttt{TO} (see line \ref{line:din-dout-type} of the pseudocode), if \texttt{u}, \texttt{v} are $\din$-close under the \texttt{input\_metric} and $\texttt{stability\_relation(din, dout) = True}$, then \texttt{function(u)}, \texttt{function(v)} are $\dout$-close under the \texttt{output\_metric}.
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof} \textbf{(Part 1 -- appropriate output domain).}
+In section \ref{sec:python-pseudocode}, we see that any value of type \texttt{TO} is in the \texttt{output\_domain}, and in line \ref{line:TO-output} of the Python-style pseudocode, we see that the \texttt{function} is always guaranteed to return a value of type \texttt{TO}. Therefore, since our output domain is any value of type \texttt{TO}, we see that $\function$ has the appropriate output domain \texttt{output\_domain}.
+
+Moreover, for some input vector \texttt{v} drawn from \texttt{input\_domain}, $\function$ either returns $\texttt{exact\_int\_cast(len(data), TO)}$, which will be of type \texttt{TO} by the definition of \texttt{exact\_int\_cast}; or, if the casting fails, it returns $\texttt{get\_max\_consecutive\_int(TO)}$ which, from our definition of $\texttt{get\_max\_consecutive\_int}$, will be of type \texttt{TO}. Therefore, since our output domain is always some value of type \texttt{TO}, we see that $\function$ has the appropriate output domain \texttt{output\_domain}.
+\end{proof}
+
+\question{Is the second paragraph in the proof above of ``Appropriate output domain'' necessary?}
+
+\begin{proof} \textbf{(Part 2 -- stability relation).} We consider two inputs: a vector $\texttt{u}$ of elements of type \texttt{TIA}; and a vector $\texttt{v}$ of elements of type \texttt{TIA}. (This \texttt{input\_domain} is specified in the pseudocode in section \ref{sec:python-pseudocode}.)
+
+Assume it is the case that $\texttt{stability\_relation}(\din, \dout) = \True$. From  the stability relation provided on line \ref{line:stability-relation}, this means that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$. Recall that \texttt{inf\_cast} will cast $\din$ to a value at least as large as $\din$, so this assumption that $\texttt{stability\_relation}$ is $\True$ also means that $\din \leq \dout$. Also assume that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric (in accordance with the \texttt{input\_metric} specified in the preconditions in section \ref{sec:python-pseudocode}).
+
+We now refer to the definition of symmetric distance provided in the \href{https://www.overleaf.com/project/60d214e390b337703d200982}{Proof Definitions} document; the definition is copied here for convenience:
+
+\begin{definition}[Symmetric distance]
+\label{defn:symm-dist}
+Let $u,v$ be vectors of elements drawn from domain $\mathcal{X}$. Define $m_v(\ell)$ as the multiplicity of element $\ell$ in vector $v$. For example, if $v$ contains five instances of the number ``21'', then $m_v(21) = 5$.
+
+A definition of the symmetric distance between $u$ and $v$, then, is $$d_{\text{Sym}}(u,v) = \sum_{z\in \mathcal{X}} |m_u(z) - m_v(z)|.$$
+\end{definition}
+
+\question{How should I refer readers to a definition located in another document? I know how to use \texttt{$\backslash$label\{\ldots\}} and \texttt{$\backslash$ref\{\ldots\}}, but that's only for referring to definitions, sections, etc. located in the same doc.}
+
+\question{As a follow-up to the question above, if there's not a good way to refer to definitions in proofs, should important definitions be copied into the proof doc (as above), or should I remove ``in-proof'' definitions and rely on readers to track down the right definition in the proof definitions document, which is a document that may be continuously updated for the lifetime of the OpenDP project?}
+
+Combining the assumptions that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$ and that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric means that
+\begin{equation}
+    d_\text{Sym}(\texttt{u}, \texttt{v})
+    \leq \din \leq \dout.
+\end{equation}
+
+Let $\mathcal{X}$ be the domain of all elements of type \texttt{TIA}. Therefore, we see that the symmetric distance  between \texttt{u} and \texttt{v} is 
+\begin{equation}
+\label{eq:expand-dymm-dist}
+    d_\text{Sym}(\texttt{u}, \texttt{v}) = \sum_{z\in \mathcal{X}} |m_{\texttt{u}}(z) - m_{\texttt{v}}(z)| \leq \din \leq \dout.
+\end{equation}
+
+The $\function$ used in \texttt{MakeCount} sums over a single data type, namely a row. Let \texttt{rows} be a one-element domain, where every element of type \texttt{TIA} is considered to be the same element of \texttt{rows}; and let the single element be called \texttt{row}. Also, as in the \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{Pseudocode definitions} document, let \texttt{len(vec)} be a function that returns the number of rows in vector \texttt{vec}.
+
+Therefore, using the notation in definition \ref{defn:symm-dist}, we can write
+\begin{equation}
+\label{eq:len-to-m}
+    |\texttt{len(u)} - \texttt{len(v)}| = \sum_{z\in \texttt{rows}}|m_{\texttt{u}}(z) - m_{\texttt{v}}(z)| = |m_{\texttt{u}}(\texttt{row}) - m_{\texttt{v}}(\texttt{row})|
+\end{equation}
+(note that the summation term is removed in the final term in equation \ref{eq:len-to-m} since the domain \texttt{rows} consists of the single element \texttt{row}).
+
+By the triangle inequality, then, we see that
+\begin{equation}
+\label{eq:triang-ineq}
+    |m_{\texttt{u}}(\texttt{row}) - m_{\texttt{v}}(\texttt{row})| \leq \sum_{z\in \mathcal{X}} |m_{\texttt{u}}(z) - m_{\texttt{v}}(z)|.
+\end{equation}
+
+Combining equations \ref{eq:len-to-m} and \ref{eq:triang-ineq} tells us that $|\texttt{len(u)} - \texttt{len(v)}| = |m_{\texttt{u}}(\texttt{row}) - m_{\texttt{v}}(\texttt{row})| \leq \sum_{z\in \mathcal{X}} |m_{\texttt{u}}(z) - m_{\texttt{v}}(z)|$; combining this with equation \ref{eq:expand-dymm-dist} tells us that we have
+\begin{equation}
+\label{eq:lens-dout-close}
+    |\texttt{len(u)} - \texttt{len(v)}| = |m_{\texttt{u}}(\texttt{row}) - m_{\texttt{v}}(\texttt{row})| \leq \dout,
+\end{equation}
+so \texttt{len(u)} and \texttt{len(v)} must be $\dout$-close. This, however, does not complete the proof because $\texttt{function(u)}$ does not return \texttt{len(u)}, but either \texttt{exact\_cast(len(u),TO)} or -- in the event \texttt{exact\_cast} fails -- \texttt{get\_max\_consecutive\_int(TO)}.
+
+We now consider the two cases that could occur:
+
+\begin{enumerate}
+    \item (Without loss of generality, \texttt{exact\_cast(len(u),TO)} fails and \texttt{exact\_cast(len(v),TO)} succeeds). Because \texttt{TO} has trait \texttt{ExactIntCast(usize)}, if the \texttt{exact\_cast} fails for \texttt{len(u)}, we then know that \texttt{len(u)} is greater than \texttt{get\_max\_consecutive\_int(TO)}. Likewise, if the \texttt{exact\_cast} succeeds for \texttt{len(v)}, we then know that \texttt{len(v)} is no larger than \texttt{get\_max\_consecutive\_int(TO)}. Therefore, because the return value  \texttt{get\_max\_consecutive\_int(TO)} for \texttt{u} is smaller than the true length value \texttt{len(u)}, the absolute difference between the output for \texttt{u} and the output for \texttt{v} will be \emph{smaller} than the absolute distance between \texttt{len(u)} and \texttt{len(v)}. Since we showed that the \texttt{len(u)} and \texttt{len(v)} are $\dout$-close in equation \ref{eq:lens-dout-close}, therefore the outputs will still be $\dout$-close.
+    
+    Note that if \texttt{exact\_cast} fails for both \texttt{len(u)} and \texttt{len(v)}, then the output for both \texttt{u} and \texttt{v} is \texttt{get\_max\_consecutive\_int(TO)}, resulting in an absolute distance of 0 between the outputs -- the smallest possible absolute distance -- so the outputs for \texttt{u} and \texttt{v} must be $\dout$-close.
+    
+    \item (Both \texttt{exact\_cast(len(u),TO)} and \texttt{exact\_cast(len(v),TO)} succeed). Because \texttt{TO} implements \texttt{ExactIntCast(usize)}, we know \texttt{exact\_cast}s from \texttt{len(u)} to \texttt{TO} will be exact. Therefore, the returned values will be \texttt{len(u)} and \texttt{len(v)}, except the values will now be of type \texttt{TO}. Since we showed that the \texttt{len(u)} and \texttt{len(v)} are $\dout$-close in equation \ref{eq:lens-dout-close}, therefore the \texttt{exact\_cast}ed lengths will also be $\dout$-close.
+\end{enumerate}
+
+Because the outputs will always be $\dout$-close for inputs that follow the conditions specified in part 2 of theorem \ref{thrm:domain-and-stability}, we see that the stability guarantee is proven.
+
+\end{proof}
+
+\end{document}
