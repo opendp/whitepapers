@@ -93,7 +93,7 @@
 
 \title{Privacy Proofs for OpenDP: Clamping}
 \author{S\'ilvia Casacuberta}
-\date{June 2021}
+\date{Summer 2021}
 
 \begin{document}
 
@@ -131,12 +131,12 @@ To ensure the correctness of the output, we require the following preconditions:
 \begin{itemize}
     \item \textbf{User-specified types:}
     \begin{itemize}
-        \item Type \texttt{T} must implement \texttt{TotalOrd} (such as, e.g., non-null \texttt{floats} or \texttt{ints}).\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented.}
+        \item Type \texttt{T} must have trait \texttt{TotalOrd}.\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented.}
     \end{itemize}
     \item \texttt{input\_domain:} any vector of elements of type \texttt{T}.
     \item \texttt{output\_domain:} any vector of elements of type \texttt{T} which are contained in the interval \texttt{[L, U]}, where 
-    \texttt{L} and \texttt{U} are of type \texttt{T}.
-    \item \texttt{input\_metric:} symmetric distance
+    \texttt{L} and \texttt{U} are of type \texttt{T}. \silvia{Problem: \texttt{L} and \texttt{U} appear only later in the pseudocode, as discussed on July 13.}
+    \item \texttt{input\_metric:} symmetric distance.
     \item \texttt{output\_metric:} symmetric distance.
 \end{itemize}
 
@@ -188,19 +188,24 @@ The necessary definitions for the proof can be found at \href{https://www.overle
 
 %\silvia{Reference specific lines in the pseudocode? E.g., for function.}
 \begin{theorem}
-    For every setting of the input parameters ($L, U$) to \texttt{MakeClamp} such that the given preconditions
+    For every setting of the input parameters \texttt{(L, U)} to \texttt{MakeClamp} such that the given preconditions
     hold, the transformation returned by \texttt{MakeClamp} has the following properties:
     \begin{enumerate}
         \item \textup{(Appropriate output domain).} For every element $v$ in \texttt{input\_domain}, $\function(v)$ is in \texttt{output\_domain}. % Prof. Vadhan said on 29/6 to leave it as this for now, but maybe in the future we add to the theorem statement what exactly the input domain and output domain are (although of course we already say this in the proof)
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ from \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ and $\dout$ are of type \texttt{u32}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v), \function(w)$ are $d_{out}$-close under \texttt{output\_metric}.
+        
+        \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
+        
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ and $\dout$ are of type \texttt{u32}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v), \function(w)$ are $d_{out}$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-\textbf{(Appropriate output domain).} In the case of \texttt{MakeClamp}, this corresponds to showing that for every vector $v$ of elements of type \texttt{T}, $\function(v)$ is a vector of elements of type \texttt{T} which are contained in the interval \texttt{[L, U]}. For that, we need to show two things: first, that the vector entries of $\function(v)$ have type \texttt{T}. % Recall that the compiler infers the float type from VectorDomain(IntervalDomain(L, U)) because L and U have type float
+\textbf{(Appropriate output domain).} In the case of \texttt{MakeClamp}, this corresponds to showing that for every vector $v$ of elements of type \texttt{T}, $\function(v)$ is a vector of elements of type \texttt{T} which are contained in the interval \texttt{[L, U]}. For that, we need to show two things: first, that \texttt{function(v)} has type \texttt{Vec(T)}. % Recall that the compiler infers the float type from VectorDomain(IntervalDomain(L, U)) because L and U have type float
 Second, that they belong to the interval \texttt{[L, U]}.
 
-That $\function(v)$ has type \texttt{Vec(T)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(T)} and returns an element of type \texttt{Vec(T)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. Secondly, we need to show that the vector entries belong to the interval \texttt{[L, U]}. This follows from the definition of \texttt{clamp} in line \ref{line:clamp}. According to line \ref{line:clamp} in the pseudocode, there are 3 possible cases to consider:
+Firstly, that $\function(v)$ has type \texttt{Vec(T)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(T)} and returns an element of type \texttt{Vec(T)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
+
+Secondly, we need to show that the vector entries belong to the interval \texttt{[L, U]}. This follows from the definition of \texttt{clamp} in line \ref{line:clamp}. According to line \ref{line:clamp} in the pseudocode, there are 3 possible cases to consider:
 \begin{enumerate}
     \item \texttt{x} $>$ \texttt{U}: then $\clamp\texttt{(x)}$ returns \texttt{U}.
     \item \texttt{x} $\in$ \texttt{[L, U]}: then $\clamp\texttt{(x)}$ returns \texttt{x}.
@@ -230,6 +235,9 @@ Lastly, the necessary condition that \texttt{L} $\leq$ \texttt{U} is checked in 
 % "appropriately quantified" sounds vague
 %\grace{Why is this called privacy guarantee and not stability something? I thought it should only be a "privacy guarantee" for measurements not transformations.}
 %\silvia{So ``privacy relation" for measurements $=$ ``stability relation" for transformations, but both are providing the DP guarantee. But maybe ``DP guarantee" is not the best name}
+
+\smallskip
+\textbf{(Domain-metric compatibility).}  For \texttt{MakeClamp}, both cases correspond to showing that \texttt{VectorDomain(T)} is compatible with symmetric distance. This follows directly from the definition of symmetric distance, as stated in \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. The \textit{appropriate output domain property} shown above ensures that \texttt{output\_domain} is \texttt{VectorDomain(T)}, and hence also compatible with the \texttt{output\_metric} symmetric distance.
 
 \smallskip
 \textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(v)$ and $\function(w)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
