@@ -112,7 +112,7 @@ In both cases, we maintain the terms in alphabetical order within each section. 
 \end{itemize}
 
 \section{Mathematical operators}
-\silvia{Passed form the list of definitions used in the pseudocode doc. Merge with ``Operations" section.}
+\questionc{We would like to discuss how to approach this section further.}
 
 The notation we are using for various mathematical operations is, as of 24 June 2021, inspired by section 2 of \url{https://hal-ens-lyon.archives-ouvertes.fr/ensl-01529804/file/crlibm.pdf}. (The notation may change in the future.) We plan to use a similar standardized notation for describing the semantics of \href{https://www.mpfr.org/}{MPFR}.\footnote{Library used in OpenDP to deal with floating point arithmetic.}
 
@@ -138,7 +138,7 @@ The notation we are using for various mathematical operations is, as of 24 June 
 
 \subsection{Notes, todos, questions}
 
-\todo{Add the cast definition?.}
+\todo{Add the cast definition?}
 
 \todo{max, min, val(x) (give number represented by Rust value), see email from June 21. Subindex for type?}
 
@@ -160,13 +160,13 @@ A set is an unordered list of objects.
 \end{definition}
 
 \begin{definition}[Multiset]
-A multiset is a modification of the notion of a set which, unlike a set, allows for repetitions for each of its elements. The number of repetitions of an element in the multiset corresponds to the \textit{multiplicity} of that element. \questionc{multiset vs MultiSet.}
+A multiset is a modification of the notion of a set which, unlike a set, allows for repetitions for each of its elements. The number of repetitions of an element in the multiset corresponds to the \textit{multiplicity} of that element. \questionc{multiset vs MultiSet.} \silvia{Add what we said on July 15.}
 \end{definition}
 
 %\silvia{Sets are by definition unordered, no need to specify that in the 2nd sentence.}
 
 \begin{remark}
-Given a vector $v$, we denote its multiset representation by $\MultiSet(v)$. This distinction is relevant because vectors are ordered objects whereas multisets are not. In the OpenDP library, all datasets are represented as vector domains, and therefore for any vector $v$ we need to use the notation $\MultiSet(v)$ when referring to its multiset representation to indicate that ordering should be dropped. \questionc{Clashes a bit with the $\MultiSet(\X)$ use in the PF; domain vs vector.}
+Given a vector $v$, we denote its multiset representation by $\MultiSet(v)$. This distinction is relevant because vectors are ordered objects whereas multisets are not. In the OpenDP library, all datasets are represented as vector domains, and therefore for any vector $v$ we need to use the notation $\MultiSet(v)$ when referring to its multiset representation to indicate that ordering should be dropped. \questionc{Clashes a bit with the $\MultiSet(\X)$ use in the PF; domain vs vector.} \silvia{This should be resolved after consensus on July 15.}
 \end{remark}
 
 \begin{example}
@@ -175,8 +175,8 @@ Given a vector $v$, we denote its multiset representation by $\MultiSet(v)$. Thi
 
 \questionc{Is this clear enough? Because this is very important.} \connor{Note: As of July 12, 2021, it may be less important since we may not need multisets anymore -- for example, we now have a ``vector-first'' definition for symmetric distance that we can use.} \silvia{Still needs discussion: defining terms in a ``vector-first" manner to avoid using $\MultiSet(v)$ in the proofs.}
 
-\silvia{Decide one of the following 2:}
-\begin{definition}[Histogram notation, MultiSet version]
+\questionc{We should decide on whether we want to keep a vector approach or a multiset approach:}
+\begin{definition}[Histogram notation, multiset version]
 \label{defn:histogram}
     Let $h_x: \mathcal{X} \rightarrow \mathbb{N}$ be the histogram of a multiset $x \in \MultiSet(\mathcal{X} )$ for some domain $\mathcal{X}$. That is, $h_x(z)$ denotes the number of occurrences of $z \in \mathcal{X}$ in multiset $x$ (with multiplicities).
 \end{definition}
@@ -251,7 +251,7 @@ For randomized function $f: \texttt{DI} \rightarrow \texttt{DO}$, $\Relation(d_{
 
 \subsection{Notes, todos, questions}
 
-\todo{Add explanation on forward and backward map.}
+\todo{Add explanation on forward and backward map?}
 
 %\silvia{TODO: define first the customary definition for sym dist}
 %\silvia{TODO: and make it correct for multisets}
@@ -265,15 +265,17 @@ For randomized function $f: \texttt{DI} \rightarrow \texttt{DO}$, $\Relation(d_{
 
 \connor{Because the Rust type on which a metric operates is covered in the pseudocode definitions, I think we just need to talk mathematically here, like ``symmetric distance is defined on vectors''.}
 
+\silvia{On July 15 we settled on only writing the mathematical definition in this document, and then writing the Rust list of domains and associated types in the pseudocode definitions document.}
+
 The associated type of any input metric is the type of the corresponding $\din$. In turn, the associated type of any output metric is the type of the corresponding $\dout$.
 
 \subsection{Symmetric distance}
 \begin{definition}[Symmetric difference]
-Given a vector domain \texttt{VectorDomain(D)}, the \textit{symmetric difference} between any two vectors $u, v \in \texttt{VectorDomain(D)}$, denoted $\MultiSet(u)$ $\Delta \MultiSet(v)$, corresponds to the multiset representation of elements which are in either $u$ or $v$ but not in their intersection.
+The \textit{symmetric difference} between any two vectors $u, v$, denoted by $\MultiSet(u)\Delta \MultiSet(v)$, corresponds to the multiset representation of elements which are in either $u$ or $v$ but not in their intersection. The multiplicity of each element $x$ in $\MultiSet(u)\Delta \MultiSet(v)$ corresponds to the difference in absolute value of the multiplicities of $x$ in $\MultiSet(u)$ and in $\MultiSet(v)$.
 
-\connor{I think we should have an explanation of what is means for an element to be in, for example, $u$ but not in $v$. For example, if we have $u = \MultiSet(0,0,1)$ and $v = \MultiSet(0)$, is $0$ in $v$ or not? We want it to be that ``the first $0$ is in $v$, but the second $0$ is not in $v$'', but I don't think the current definition gets that message across.}
+%\connor{I think we should have an explanation of what is means for an element to be in, for example, $u$ but not in $v$. For example, if we have $u = \MultiSet(0,0,1)$ and $v = \MultiSet(0)$, is $0$ in $v$ or not? We want it to be that ``the first $0$ is in $v$, but the second $0$ is not in $v$'', but I don't think the current definition gets that message across.}
 
-\todo{Improve this definition}
+%\todo{Improve this definition}
 \end{definition}
 
 %\todo{Changed my mind after preconditions: better to say symmetric distance than \texttt{SymmetricDistance} (no longer appears in pseudocode)}
@@ -298,15 +300,13 @@ Because a multiset can have repeated elements, for $a = \MultiSet(1,2,1)$ and $b
 We introduce the notion of symmetric distance, which differs from symmetric difference in that it is the \emph{cardinality} of the multiset instead of the multiset itself.
 
 \begin{definition}[Symmetric distance]
-Given an arbitrary vector domain \texttt{VectorDomain(D)}, %or \texttt{SizedDomain(VectorDomain(D))}, 
-the \textit{symmetric distance} between any two vectors $u, v \in$ \texttt{VectorDomain(D)}, %or $\in$ \texttt{SizedDomain(VectorDomain(D))}, 
-which is denoted as $d_{Sym} = |\MultiSet(u) \Delta \MultiSet(v)|$, is equal to the cardinality of the symmetric difference between $u$ and $v$. Symmetric difference is a metric defined on vector domains and has associated type \texttt{u32}.
+The \textit{symmetric distance} between any two vectors $u, v$, denoted $d_{Sym} = |\MultiSet(u) \Delta \MultiSet(v)|$, is equal to the cardinality of the symmetric difference between $u$ and $v$.
 \end{definition}
 
-\connor{Do you think we should leave out the associated type above? The associated type may be more of a job for the pseudocode definitions since types aren't really mentioned in this doc.}
+%\connor{Do you think we should leave out the associated type above? The associated type may be more of a job for the pseudocode definitions since types aren't really mentioned in this doc.}
 
 \begin{definition}[$\din$-close under $d_{Sym}$]
-    For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and $\din$ of type \texttt{u32}, we say that $u, v$ are $\din$-close under $d_{Sym}$ whenever $d_{Sym}(u, v) = |\MultiSet(u) \Delta \MultiSet(v)| \leq \din$.
+    For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and $\din$ of type \texttt{u32}, we say that $u, v$ are $\din$-close under $d_{Sym}$ whenever $d_{Sym}(u, v) = |\MultiSet(u) \Delta \MultiSet(v)| \leq \din$. \silvia{Should this also be moved to the pseudocode defs document now that the list of domains and associated type is there?}
 \end{definition}
 
 The same definition holds for $\dout$.
@@ -340,6 +340,8 @@ Note that null data values are still counted in the symmetric distance. Adding o
 
 \medskip
 \textbf{The path property of symmetric distance on sized domains.}
+
+\questionc{Given that we are avoiding texttt notation in this document, should we change \texttt{SizedDomain} for a mathematical definition of sized domain in the three lemmas that follow?}
 
 \begin{lemma}[Path property of $d_{Sym}$ on \texttt{SizedDomain}]
     For any two vectors $v, w$ of the same length (that is, for any two vectors $v, w \in$ \texttt{SizedDomain(D)} for some domain \texttt{D}), $d_{Sym}(v,w)$ is an even integer; i.e., $d_{Sym}(v,w) = 2k$ for some integer $k \geq 0$. Moreover, there exist $k$ vectors $v=v_0, v_1, \ldots, v_k=w$ such that $d_{Sym}(v_i,v_{i+1})=2$ for all $i$.
@@ -406,10 +408,8 @@ Substitute distance is a metric.
 \subsection{Absolute distance}
 
 \begin{definition}[Absolute distance]\label{def:abs}
-    Given two elements $n, m$ in \texttt{AllDomain(T)}, where \texttt{T} denotes an arbitrary type with trait \texttt{Sub(Output=T)}, the absolute distance between $n$ and $m$, denoted $d_{Abs}$, is defined as $d_{Abs}(n, m)= |n-m|$, where the horizontal bars represent absolute value. Absolute distance has associated generic type \texttt{Q}.
+    Given two numbers $n, m$, the absolute distance between $n$ and $m$, denoted $d_{Abs}$, is defined as $d_{Abs}(n, m)= |n-m|$, where the horizontal bars represent absolute value.
 \end{definition}
-
-\todo{What data types is this operation defined on?} \silvia{I think any type \texttt{T} with trait \texttt{Sub(Output=T)}.}
 
 \begin{definition}[$\din$-close under $d_{Abs}$]
     For any two elements $n, m$ in \texttt{AllDomain(T)}, where \texttt{T} denotes an arbitrary type with trait \texttt{Sub(Output=T)}, and $\din$ of generic type \texttt{Q}, we say that $n, m$ are $\din$-close under $d_{Abs}$ whenever $d_{Abs}(n, m) = |n-m| \leq \din$.
@@ -417,20 +417,16 @@ Substitute distance is a metric.
 
 The same definition holds for $\dout$.
 
-\questionc{Should we add (or move) this to the \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode''} doc?} \silvia{If we do it, we should move all of the metrics. I like it more here, but that is also from when we were using preconditions, because then the metric names never appear in the pseudocode.}
-
 \begin{claim}
     Absolute distance is a metric.
 \end{claim}
 
-Symmetric distance does not have an associated generic type; it is hard-coded to \texttt{u32}. It is the only such metric in the library that is hard-coded to an specific type. For example, absolute distance has the associated generic type \texttt{Q}, as stated in Definition~\ref{def:abs}
-
-This is why we write \texttt{metric = SymmetricDistance()}, which implicitly implies that the associated $\din, \dout$ has type \texttt{u32}, but \texttt{metric = AbsoluteValue(T)}, which implies that the associated $\din, \dout $ has type \texttt{T}. Therefore, per our pseudocode structure, all the type signatures follow directly from the domain and metrics specified.
-
 \subsection{Distances}
 \begin{definition}[$k$-close]
-For any metric $d$, we say that two elements $u, v$ are $k$-close under $d$ if $d(u, v) \leq k$. \silvia{Needs fixing after July 13 meeting: $\din, \dout$ is more general than metrics; e.g., $(\epsilon, \delta)$-DP.}
+For any metric $d$, we say that two elements $u, v$ are $k$-close under $d$ if $d(u, v) \leq k$.
 \end{definition}
+
+ \silvia{Important: $\din, \dout$ is more general than metrics; e.g., $(\epsilon, \delta)$-DP.}
 
 For example, in the case of symmetric distance, vectors $u$ and $v$ are $k$-close whenever $d_{Sym}(u, v) = |\textrm{MultiSets}(v) \Delta \textrm{MultiSets}(u)| \leq k$. We remark that the type of $k$ must correspond to the associated type of $d$.
 
