@@ -86,7 +86,7 @@
 \newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
 \newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
 \newcommand{\connor}[1]{{ {\color{teal}{(connor)~#1}}}}
-\newcommand{\sfi}{\text{\textcolor{olive}{(Salil's feedback incorporated.)}}}
+\newcommand{\sfi}{}%{\text{\textcolor{olive}{(Salil's feedback incorporated.)}}}
 \newcommand{\todosfi}{\todo{Add Salil's feedback.}}
 
 \newcommand{\metricDefn}[1]{The definition of \emph{#1} in the ``proof definitions'' document tells how the distance between data is calculated.}
@@ -101,6 +101,8 @@
 \newcommand{\todo}{{\textcolor{red}{TODO: }}}
 \newcommand{\todonei}{{\textcolor{red}{TODO (future -- not enough info yet): }}}
 \newcommand{\iffText}{\text{if and only if}}
+\newcommand{\domainType}[1]{This domain has type \texttt{#1}.}
+
 
 
 \title{List of definitions used in the pseudocode}
@@ -111,11 +113,11 @@
 
 \maketitle
 
-We use the following guideline: if a term appears in the preconditions \& pseudocode section, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
+We use the following guideline: if a term appears in the preconditions \& pseudocode section of a proof document, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
 
-In both cases, we maintain the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
+We maintain the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
 
-We also recommend linking to the Rust Standard Library in the cases where the term is already defined there.
+We also recommend linking to the Rust Standard Library when the term is defined there.
 
 \tableofcontents
 
@@ -123,13 +125,13 @@ We also recommend linking to the Rust Standard Library in the cases where the te
 % any types should be listed here
 
 \begin{definition}[\texttt{bool}]
-    The type \texttt{bool} represents a value, which can only be either \texttt{True} or \texttt{False}. If you \texttt{cast} a \texttt{bool} into an integer, \texttt{True} will be \texttt{1} and \texttt{False} will be \texttt{0}.
+    The type \texttt{bool} represents a value which can only be either \texttt{True} or \texttt{False}. If a \texttt{bool} is \texttt{cast}ed to an integer, \texttt{True} will be \texttt{1} and \texttt{False} will be \texttt{0}.
 \end{definition}
 
 \begin{definition}[\texttt{::Carrier}]
 \texttt{SomeDomain::Carrier} is the type of a member in \texttt{SomeDomain}, where \texttt{SomeDomain} is a domain. 
 
-For example, \texttt{AllDomain(T)::Carrier} is equivalent to $\T$.
+For example, \texttt{AllDomain(T)::Carrier} is $\T$.
 \end{definition}
 
 \begin{definition}[\texttt{f32}]$\sfi$
@@ -146,25 +148,21 @@ For example, \texttt{AllDomain(T)::Carrier} is equivalent to $\T$.
 \texttt{IntDistance} is equivalent to \texttt{u32}.
 \end{definition}
 
-\begin{definition}[\texttt{null}]
-    Represents a missing or unknown value. It is not equivalent to any other value, and is counted as an element when calculating symmetric distance.
-\end{definition}
-
 \begin{definition}[\texttt{u32}]$\sfi$
-    u32 is the Rust 32-bit unsigned integer type. If $v$ is a value of type \texttt{u32}, then we know that $v\in \{0,1,2,\ldots, 2^{32}-1\}$. \inRust{u32}{https://doc.rust-lang.org/std/primitive.u32.html}
+    \texttt{u32} is the Rust 32-bit unsigned integer type. If $v$ is a value of type \texttt{u32}, then we know that $v\in \{0,1,2,\ldots, 2^{32}-1\}$. \inRust{u32}{https://doc.rust-lang.org/std/primitive.u32.html}
 \end{definition}
 
 \begin{definition}[\texttt{usize}]
     \texttt{usize} is defined differently on 32-bit and 64-bit machines. This is because the size of this primitive is equal to the number of bytes it takes to reference any location in memory.
     \begin{itemize}
-        \item \textbf{32-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then we know that $\texttt{v}\in \{0,1,2,\ldots,2^{32} - 1\}$
-        \item \textbf{64-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then we know that $\texttt{v}\in \{0,1,2,\ldots,2^{64} - 1\}$
+        \item \textbf{32-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then $\texttt{v}\in \{0,1,2,\ldots,2^{32} - 1\}$
+        \item \textbf{64-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then $\texttt{v}\in \{0,1,2,\ldots,2^{64} - 1\}$
     \end{itemize}
     \inRust{usize}{https://doc.rust-lang.org/std/primitive.usize.html}
 \end{definition}
 
 \begin{definition}[\texttt{Vec(T)}]$\sfi$
-    The rust type \texttt{Vec(T)} consists of ordered lists of type \texttt{T}. For example, if \texttt{T = bool}, then values of type \texttt{Vec(T)} include $\texttt{[], [0], [1], [0, 0],} \ldots$ \inRust{Vec<T>}{https://doc.rust-lang.org/std/vec/struct.Vec.html}
+    The Rust type \texttt{Vec(T)} consists of ordered lists of type \texttt{T}. For example, if \texttt{T = bool}, then values of type \texttt{Vec(T)} include $\texttt{[], [0], [1], [0, 0],} \ldots$. \inRust{Vec<T>}{https://doc.rust-lang.org/std/vec/struct.Vec.html}
 \end{definition}
 
 \horizline
@@ -183,33 +181,34 @@ For example, \texttt{AllDomain(T)::Carrier} is equivalent to $\T$.
 
 $\sfi$ A \emph{data domain} is a representation of the set of values on which a metric or function can operate. For example, if a function accepts inputs from the domain \texttt{IntervalDomain(1:u32,17:u32)}, this means that the function can take any input value \texttt{v} of type \texttt{u32} such that \texttt{1 <= v} and \texttt{v <= 17}.
 
-\questionr{Should anything else be included in this introduction to ``Domains''?}
-
 \begin{definition}[\texttt{AllDomain}]$\sfi$
-\texttt{AllDomain(T)} is the data domain consisting of all values of type $\T$. 
+\texttt{AllDomain(T)} is the domain of all values of type $\T$. \domainType{AllDomain[T]}
 \end{definition}
 
 For example, \texttt{AllDomain(u32)} is the domain of all values of type \texttt{u32}.
 
 \begin{definition}[\texttt{IntervalDomain}] \sfi
-For a type \texttt{T} that has a total ordering (\texttt{T} has trait \texttt{TotalOrd}) and for values \texttt{L <= U} of type \texttt{T}, \texttt{IntervalDomain(L:T, U:T)} is the domain that contains all values \texttt{v} of type \texttt{T} such that \texttt{L <= v} and \texttt{v <= U}.
+\texttt{IntervalDomain(L:T, U:T)} is the domain of all values \texttt{v} of type \texttt{T} such that \texttt{L <= v} and \texttt{v <= U}, for a type \texttt{T} that has a total ordering (\texttt{T} has trait \texttt{TotalOrd}) and for values \texttt{L <= U} of type \texttt{T}. \domainType{IntervalDomain[T]}
     
 Note that, because both \texttt{L} and \texttt{U} are of type \texttt{T}, there is no need to explicitly pass \texttt{T}; the type \texttt{T} can be inferred. \texttt{IntervalDomain} is defined on any type that implements the trait \texttt{TotalOrd}.\footnote{As of June 28, the OpenDP library requires the weaker condition of partial ordering (implements \texttt{PartialOrd}) instead.}
 \end{definition}
 
-For example, \texttt{IntervalDomain(1:u32, 17:u32)} corresponds to a domain that contains all the \texttt{u32} values \texttt{v} such that \texttt{1 <= v} and \texttt{v <= 17}.
+For example, \texttt{IntervalDomain(1:u32, 17:u32)} corresponds to a domain that contains all the \texttt{u32} values \texttt{v} such that \texttt{1 <= v} and \texttt{v <= 17}; it has type \texttt{IntervalDomain[u32]}.
+
+\begin{definition}[\texttt{InherentNullDomain}] 
+    \texttt{InherentNullDomain(inner\_domain:D)} is the domain of all values of data domain \texttt{inner\_domain} and \texttt{null} values. \domainType{InherentNullDomain[D]}
+\end{definition}
 
 \begin{definition}[\texttt{SizedDomain}] $\sfi$
-    \texttt{SizedDomain(D)} is a domain that specifies the length of the enclosed domain \texttt{D}. The length of elements of the enclosed domain is specified with an element of type \texttt{usize}.
+    \texttt{SizedDomain(inner\_domain:D, n:usize)} is the domain of all vectors of length \texttt{n} drawn from domain \texttt{inner\_domain}. \domainType{SizedDomain[D]}
 \end{definition}
 
-For example, \texttt{SizedDomain(VectorDomain(AllDomain(u32), n)} corresponds to the domain of all vectors of length $\texttt{n}$ and elements of type \texttt{u32}.
+For example, \texttt{SizedDomain(VectorDomain(AllDomain(u32)), n)} is the domain of all vectors of length $\texttt{n}$ with elements of type \texttt{u32}.
 
 \begin{definition}[\texttt{VectorDomain}]
-\texttt{VectorDomain(D)} is the domain of all vectors of elements drawn from domain \texttt{D}.
+\texttt{VectorDomain(inner\_domain:D)} is the domain of all vectors of elements drawn from domain \texttt{inner\_domain}. 
+\domainType{VectorDomain[D]}
 \end{definition}
-
-For example, \texttt{VectorDomain(AllDomain(u32))::Carrier} is \texttt{Vec(u32)}.
 
 \horizline
 
@@ -252,6 +251,12 @@ A type \texttt{T} has trait \texttt{Domain} $\iffText$ it can represent a set of
 A type \texttt{TO} has trait \texttt{InfCast(TI)} $\iffText$ every cast from a value of type \texttt{TI} to type \texttt{TO} will result in a value of type \texttt{TO} that is at least as big as the value of type \texttt{TI}.
 \end{definition}
 
+\begin{definition}[\texttt{InherentNull}]
+A type \texttt{T} has trait $\iffText$ it can hold some value \texttt{null}.
+
+As of July 16, 2021, only \texttt{f32} and \texttt{f64} have the trait \texttt{InherentNull}.
+\end{definition}
+
 \begin{definition}[\texttt{MaxConsecutiveInt}]
 A type $\T$ has trait \texttt{MaxConsecutiveInt} if and only if there is some maximum nonnegative integer \texttt{i} such that all integers from 0 up to \texttt{i} (inclusive) can be expressed as a value of type $\T$; but such that the next integer that can be expressed by $\T$ is not $\texttt{i}+1$.
 \end{definition}
@@ -277,12 +282,20 @@ A type \texttt{T} has trait \texttt{PartialOrd} if for all elements $a, b, c$ of
 %The partial ordering relation is denoted by \texttt{PartialOrd}.
 \end{definition}
 
+\begin{definition}[\texttt{SaturatingAdd}]
+    A type \texttt{T} has trait \texttt{SaturatingAdd} if it performs addition that saturates at the numeric bounds instead of overflowing.
+\end{definition}
+
 \begin{definition}[\texttt{TotalOrd}]
     A type \texttt{T} has trait \texttt{TotalOrd} if and only if \texttt{T} has trait \texttt{PartialOrd} and moreover all elements are comparable; that is, for all elements $a, b$ of type \texttt{T}, either $a \leq b$ or $b \leq a$.
     
     %A total ordering over a data domain is a partial ordering  in which any two elements are comparable. That is, along with the three properties given in Definition~\ref{def:partial}, one more property must be satisfied: $a \leq b$ or $b \leq a$.
     
     %The total ordering relation is denoted by \texttt{TotalOrd}.
+\end{definition}
+
+\begin{definition}[\texttt{Zero}]
+A type $\T$ has trait \texttt{Zero} $\iffText$ $\T$ has some additive identity element.
 \end{definition}
 
 \subsection{Math-related definitions}
@@ -303,6 +316,12 @@ A type \texttt{T} has trait \texttt{PartialOrd} if for all elements $a, b, c$ of
 \begin{definition}[\texttt{Sub(Output=T)}]
     A type \texttt{T} has trait \texttt{Sub(Output=T)} $\iffText$ subtraction can be performed between elements of type \texttt{T}, with the result of the subtraction also being of type \texttt{T}.
 \end{definition}
+
+\subsection{Traits that need not appear in the preconditions}
+\begin{itemize}
+    \item \texttt{\textquotesingle static}. Notes: \texttt{\textquotesingle static} is not a type; it is a lifetime name (this is a Rust definition)
+    \item \texttt{Clone}
+\end{itemize}
 
 \horizline
 
@@ -350,6 +369,10 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
     This function is only defined on types $\T$ that have trait \texttt{MinConsecutiveInt}.   \texttt{get\_max\_value(T)} returns the minimum negative integer \texttt{i} such that all integers from 0 down to \texttt{i} (inclusive) can be expressed as a value of type $\T$; but such that the next integer that can be expressed by $\T$ is not $\texttt{i}-1$. The return value is of type \texttt{T}.
 \end{definition}
 
+\begin{definition}[\texttt{get\_min\_value}]
+    This function is only defined on types $\T$ that have a total ordering. The function \texttt{get\_min\_value(T)} returns the minimum value that can be expressed by an object of type \texttt{T}. The return value is of type \texttt{T}.
+\end{definition}
+
 \begin{definition}[\texttt{get\_output\_domain}]
     The function \texttt{get\_output\_domain(function)} returns the output domain of values returned by function \texttt{function}.
 \end{definition}
@@ -373,10 +396,10 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
 \end{definition}
 
 \begin{definition}[\texttt{len}]
-    The function \texttt{len(vector\_name)} returns the number of elements in \texttt{vector} \texttt{vector\_name}. Output is of type \texttt{usize}, so the return value $v$ on 32-bit machines is $v\in \{0,1,2,\ldots,2^{32} - 1\}$; likewise, the return value on 64-bit machines is $v\in \{0,1,2,\ldots,2^{64} - 1\}$. \inRust{std::vec::Vec::len}{https://doc.rust-lang.org/std/vec/struct.Vec.html\#method.len} In Rust, this is done with \texttt{vector.len()}. Returns number of elements in rust vector. \silvia{Why are there two different Rust names? Did you mean Python for the second?}
+    The function \texttt{len(vector\_name)} returns the number of elements in \texttt{vector} \texttt{vector\_name}. Output is of type \texttt{usize}, so the return value $v$ on 32-bit machines is $v\in \{0,1,2,\ldots,2^{32} - 1\}$; likewise, the return value on 64-bit machines is $v\in \{0,1,2,\ldots,2^{64} - 1\}$. \inRust{std::vec::Vec::len}{https://doc.rust-lang.org/std/vec/struct.Vec.html\#method.len}
 \end{definition}
 
-Note: we do not call it \texttt{length} to avoid notational clashes with, for example, the Bounded Sum code.
+\emph{Note: we do not call it \texttt{length} to avoid notational clashes with, for example, the Bounded Sum code.}
 
 \begin{definition}[\texttt{max}]
     The function \texttt{max(var1, var2)} compares \texttt{var1} and \texttt{var2}, and returns the greater of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var2}. \inRust{std::cmp::max}{https://doc.rust-lang.org/std/cmp/fn.max.html}
@@ -389,6 +412,12 @@ Note: we do not call it \texttt{length} to avoid notational clashes with, for ex
 \horizline
 
 \subsection{Notes, todos, questions}
+
+\begin{itemize}
+    \item \todo{Add \texttt{data.iter().sum()}}
+    \item \todo{Add \texttt{sum.saturating\_add()}}
+    \item \todo{Add \texttt{fold}}
+\end{itemize}
 
 \section{Classes}
 
@@ -482,9 +511,15 @@ Metrics are used to measure the distances between data. Metrics have a \emph{dom
 \begin{definition}[\texttt{SymmetricDistance}]
 \metricDefn{symmetric distance}
 \begin{itemize}
-    \item \textbf{Domain:} \texttt{VectorDomain(AllDomain(T))}
+    \item \textbf{Domains:} \texttt{VectorDomain(D)} where \texttt{D} is any domain
     \item \textbf{Associated type:} \texttt{u32}
 \end{itemize}
 \end{definition}
+
+\emph{Note: the associated type of \texttt{SymmetricDistance} is hard-coded as \texttt{u32}, so when declaring that the metric being used is \texttt{SymmetricDistance}, we only need to write \texttt{metric = SymmetricDistance()}; by contrast, we need to write \texttt{AbsoluteDistance(T)} where \texttt{T} is the type on which we are taking the absolute distance since the associated type for \texttt{AbsoluteDistance} is not hard-coded.}
+
+\horizline
+
+\subsection{Notes, todos, questions}
 
 \end{document}
