@@ -169,20 +169,17 @@ Here, we use preconditions to check for traits, and to specify the domains and m
         \item \question{The final bullet point above is not needed in this proof, but it is needed in the code so a hint can be constructed (otherwise a binary search would be needed to construct the hint). Should this precondition be included here or not?}
         
     \end{itemize}
-    
-    \item \texttt{input\_domain}: any vector of elements of type \texttt{TIA}
-    
-    \item \texttt{output\_domain}: any value of type \texttt{TO}
-    
-    \item \texttt{input\_metric}: only \texttt{SymmetricDistance} can be used
-    
-    \item \texttt{output\_metric}: only \texttt{AbsoluteDistance} operating on type \texttt{TO} can be used
 \end{itemize}
 
 \textbf{Postconditions:} a \texttt{Transformation} must be returned (i.e. if a \texttt{Transformation} cannot be returned successfully, a runtime error should be returned)
 
 \begin{lstlisting}[language = Python, escapechar=|]
 def MakeCount(TIA, TO):
+
+    input_domain = VectorDomain(AllDomain(TIA))
+    output_domain = AllDomain(TO)
+    input_metric = SymmetricDistance()
+    output_metric = AbsoluteDistance(TO)
     
     # give the Transformation the following properties
     max_value = get_max_consecutive_int(TO) 
@@ -191,7 +188,7 @@ def MakeCount(TIA, TO):
             return exact_int_cast(len(data), TO)
         except FailedCast:
             return max_value |\label{line:except-return}|
-    def stability_relation(din: u32, dout: TO) -> bool: |\label{line:din-dout-type}|
+    def stability_relation(din:u32, dout:TO) -> bool: |\label{line:din-dout-type}|
         return 1 * inf_cast(din,TO) <= dout |\label{line:stability-relation}|
 
     # now, return the Transformation
@@ -207,6 +204,8 @@ def MakeCount(TIA, TO):
     \begin{enumerate}
         \item \textup{(Appropriate output domain).} For every vector \texttt{v} in the \texttt{input\_domain}, \texttt{function(v)} is in the \texttt{output\_domain}.
         
+        \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
+        
         \item \textup{(Stability guarantee).} For every input \texttt{u}, \texttt{v} drawn from the \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ is of type \texttt{u32} and $\dout$ is of type \texttt{TO} (see line \ref{line:din-dout-type} of the pseudocode), if \texttt{u}, \texttt{v} are $\din$-close under the \texttt{input\_metric} and $\texttt{stability\_relation(din, dout) = True}$, then \texttt{function(u)}, \texttt{function(v)} are $\dout$-close under the \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
@@ -219,7 +218,14 @@ Moreover, for some input vector \texttt{v} drawn from \texttt{input\_domain}, $\
 
 \question{Is the second paragraph in the proof above of ``Appropriate output domain'' necessary?}
 
-\begin{proof} \textbf{(Part 2 -- stability relation).} We consider two inputs: a vector $\texttt{u}$ of elements of type \texttt{TIA}; and a vector $\texttt{v}$ of elements of type \texttt{TIA}. (This \texttt{input\_domain} is specified in the pseudocode in section \ref{sec:python-pseudocode}.)
+\begin{proof} \textbf{(Part 2 -- domain-metric compatibility).}
+
+The \texttt{input\_domain} is \texttt{VectorDomain(AllDomain(TIA))}. Because our \texttt{input\_metric} of \texttt{SymmetricDistance} is compatible with any domain of the form \\\texttt{VectorDomain(inner\_domain)}, and because \texttt{VectorDomain(AllDomain(TIA))} is of this form, we see that it is compatible with our \texttt{input\_metric} of \texttt{SymmetricDistance}.
+
+The \texttt{output\_domain} is \texttt{AllDomain(TO)}. Because our \texttt{output\_metric} of \texttt{SymmetricDistance} is compatible with any domain of the form \texttt{AllDomain(T)} where \texttt{T} has the trait \texttt{Sub(Output=T)}, and because \texttt{AllDomain(TO)} is of this form and has the necessary trait, we see that it is compatible with our \texttt{output\_metric} of \texttt{AbsoluteDistance}.
+\end{proof}
+
+\begin{proof} \textbf{(Part 3 -- stability relation).} We consider two inputs: a vector $\texttt{u}$ of elements of type \texttt{TIA}; and a vector $\texttt{v}$ of elements of type \texttt{TIA}. (This \texttt{input\_domain} is specified in the pseudocode in section \ref{sec:python-pseudocode}.)
 
 Assume it is the case that $\texttt{stability\_relation}(\din, \dout) = \True$. From  the stability relation provided on line \ref{line:stability-relation}, this means that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$. Recall that \texttt{inf\_cast} will cast $\din$ to a value at least as large as $\din$, so this assumption that $\texttt{stability\_relation}$ is $\True$ also means that $\din \leq \dout$. Also assume that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric (in accordance with the \texttt{input\_metric} specified in the preconditions in section \ref{sec:python-pseudocode}).
 
