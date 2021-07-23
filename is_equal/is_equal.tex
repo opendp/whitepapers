@@ -53,103 +53,144 @@
 \newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
 \newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
 
-\pagestyle{fancy}
-\fancyhf{}
-\lhead{\textsc{Open DP Privacy Proofs: Measurements (Is Equal)}}
-\renewcommand{\headrulewidth}{0pt}
+\newcommand{\MultiSet}{\mathrm{MultiSet}}
+\newcommand{\len}{\mathrm{len}}
+\newcommand{\din}{\texttt{d\_in}}
+\newcommand{\dout}{\texttt{d\_out}}
+\newcommand{\T}{\texttt{T} }
+\newcommand{\F}{\texttt{F} }
+\newcommand{\Relation}{\texttt{Relation}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\True}{\texttt{True}}
+\newcommand{\False}{\texttt{False}}
+\newcommand{\clamp}{\texttt{clamp}}
+\newcommand{\function}{\texttt{function}}
+\newcommand{\float}{\texttt{float }}
+\newcommand{\questionc}[1]{\textcolor{red}{\textbf{Question:} #1}}
+
+
+\title{Privacy Proofs for OpenDP: Is\_Equal Transformation}
+\author{Grace Tian}
+\date{Summer 2021}
 \begin{document}
 
-\vspace{0.2cm}
-\emph{Written by Grace Tian}
-\vspace{0.2cm}
 
-% \section{Cast}
+\maketitle
+\tableofcontents
 
-\section{Is Equal} 
-Lines 40-56 of \url{https://github.com/opendp/opendp/blob/21-impute/rust/opendp/src/trans/cast.rs#L40-L56}
+\section{Algorithm Implementation}
+\subsection{Code in Rust}
+The current OpenDP library contains the \texttt{make\_clamp\_vec} function implementing the clamping function. This is defined in lines 62-71 of the file \texttt{manipulation.rs} in the Git repository (\url{https://github.com/opendp/opendp/blob/21-impute/rust/opendp/src/trans/manipulation.rs#L62-L71}).
 
 \subsection{Code}
 
-\includegraphics[width=\textwidth]{make_is_equal.png}
+%\textbf{OLD:}
+%\includegraphics[width=0.8\textwidth]{make_is_equal.png}
+
+%\textbf{NEW:}
+\includegraphics[width=\textwidth]{make_is_equal_new.jpg}
 
 
-\subsection{Pseudo Code}
-% \silvia{I think perhaps it is useful to include the function as an equation}
+\subsection{Pseudo Code in Python}\label{sec:pseudocode}
 
-\begin{lstlisting}[language=Python]
-def make_is_equal(value : T, metric):
-    input_domain = (VectorDomain(AllDomain(T));
-    output_domain = (VectorDomain(AllDomain(bool));
-    input_metric = metric; 
-    let output_metric = metric
-    assert is_instance(metric, SymmetricDistance);
-    
-    let function(data: Vec<T>) -> Vec<Bool>: 
-        return map(data == value);
-    let stability_relation = lambda(d_in, d_out): (d_in <= d_out);
-    
-    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation)
+\subsubsection*{Preconditions}
+To ensure the correctness of the output, we require the following preconditions:
 
-Is_Equal = make_is_equal(value, SymmetricDistance);
-\end{lstlisting}
-
-
-\subsection{Conditions as Specified in Pseudo Code}
 \begin{itemize}
-    \item Input Domain: all vector domain of input value type \texttt{T} (same type as input \texttt{value}). T is a generic type that is static and can be evaluated with equality.
-    \item Output Domain: all vector domain of type \texttt{bool}.
-    \item Function: returns vector mapping of whether vector elements equal input \texttt{value}.
-    \item Input Metric: Symmetric Distance
-    \item Output Metric: same as Input Metric. 
-    \item Stability Relation: function that takes in 32 bit integers $d_{in}$ and $d_{out}$ and returns whether $d_{in} \leq d_{out}.$
+    \item \textbf{User-specified types:}
+    \begin{itemize}
+        \item Variable \texttt{\texttt{value}} must be of type \texttt{TI}
+        \item Type \texttt{T} must have traits \texttt{static} and \texttt{PartialEq}
+    \end{itemize}
 \end{itemize}
 
-\silvia{Do we need to include the stability parameter? And perhaps include an example calling \texttt{make\_is\_equal} with metrics?}
+\subsubsection*{Postconditions}
 
-\silvia{Shouldn't it be checked / imposed that the end user passes the same input and out metric somewhere? Otherwise have only one?}
+\begin{itemize}
+    \item Either a valid \texttt{Transformation} is returned or an error is returned.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, escapechar=|]
+def make_is_equal(value : TI):
+    input_domain = (VectorDomain(AllDomain(T));
+    output_domain = (VectorDomain(AllDomain(bool));
+    input_metric = SymmetricDistance(); 
+    let output_metric = SymmetricDistance();
+    
+    
+    def Relation(d_in: u32, d_out: u32) -> bool: |\label{line:rel}|
+        return d_out >= d_in*1
+        
+    let function(data: Vec(TI)) -> Vec(Bool): |\label{line:fn}|
+        return list(map(data == value)) |\label{line:map}|
+
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, Relation)
+\end{lstlisting}
+
+\grace{ Need to rewrite pseudocode for the next round of edits. Need to confirm whether we return Transformation or make row by row function (might be confusing if it's referencing another function? Also need to check if the mapping works for vectors instead of elements. }
 
 \subsection{Proof}
-
 \begin{theorem}
-For every setting of the input parameters to \texttt{make\_is\_equal}, the transformation returned by \texttt{make\_is\_equal} has the following properties
+
+
+For every setting of the input parameters \texttt{value} to \texttt{make\_is\_equal} such that the given preconditions hold, the transformation returned by \texttt{make\_is\_equal} has the following properties:
 \begin{enumerate}
-    \item \textup{(Appropriate output domain).} If vector \texttt{v} of type \texttt{T} is in the input domain, then \texttt{function(v)} is in the output domain, otherwise the program will raise an \texttt{Exception}. 
-    \item \textup{(Stability Guarantee).} If two vector inputs $v, w$ are "$d_{in}$ - close" and if \texttt{Relation($d_{in}$, $d_{out}$) = True} then the corresponding outputs $function(v), function(w)$ are "$d_{out}$ - close". 
+    \item \textup{(Appropriate output domain).} If vector \texttt{v} of type \texttt{T} is in the input domain, then \texttt{function(v)} is in the output domain.
+    \item \textup{(Domain-Metric Compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
+    \item \textup{(Stability Guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v), \function(w)$ are $d_{out}$-close under \texttt{output\_metric}.
 \end{enumerate}
 \end{theorem}
 \begin{proof}
 \begin{enumerate}
-\item \textup{(Appropriate output domain).} Rust automatically enforces the type system to ensure it is in the correct output domain. The type signature of the function in the pseudo code and Rust code takes in a \texttt{Vec<T>} and returns \texttt{Vec<Bool>}. Since the rust code successfully compiles, by definition of the type signature the theorem must hold. Otherwise, the code will raise an exception for incorrect input type.
+\item \textbf{(Appropriate output domain).} The $\function(v)$ has type \texttt{Vec(TI)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(TI)} and returns an element of type \texttt{Vec(Bool)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
 
+\item \textbf{(Domain-metric compatibility).} 
 
+Symmetric distance is compatible with \texttt{VectorDomain(AllDomain(TI))} for any generic type \texttt{TI}, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. The theorem holds because for \texttt{make\_is\_equal}, the input domain is \texttt{VectorDomain(AllDomain(TI))} for generic type \texttt{TI} and the output domain is \texttt{VectorDomain(AllDomain(bool))}. 
 
-\item \textup{(Stability Guarantee).}
-We can assume $d_{in} \leq d_{out}$ because Relation($d_{in}$, $d_{out}$) = \texttt{True}. We consider the symmetric distance as input metric. Since vector inputs $v, w$ are $d_{in}$-close, then by definition the symmetric distance of the multisets is bounded by $d_{in}$: $\abs{MultiSet(v) \Delta MultiSet(w)} \leq d_{in}$ 
+\item \textbf{(Stability guarantee).} 
+Because $\Relation(\din, \dout) = \texttt{True}$, it follows that $\din \leq \dout$ by the \texttt{is\_equal} stability relation defined in the pseduocode.
 
-% We can denote the histogram of the multiset $v \in MultiSets(\mathcal{X})$ as $h_v : \mathcal{X} \to \mathbb{N}$ where $h_v(z)$ is the number of occurrences of $z$ in $\mathcal{X}$. $$d_{Sym}(v, w) = \norm{h_v - h_w}_1 = \sum_{z} \abs{h_v(z) - h_w(z)}.$$
+Since vector inputs $v, w$ are $\din$-close, then the symmetric distance is bounded by $\din$ by definition the symmetric distance is bounded by $d_{in}$: $d_{Sym}(v, w) \leq \din$.
 
-We want to show that $\abs{MultiSet(function(v)) \Delta MultiSet(function(w))} \leq d_{out}$. %\\$\abs{MultiSet(function(v))\Delta MultiSet(function(w))} = \norm{h_{is\_equal(v)} - h_{is\_equal(w)}}_1 \leq d_{out}$. 
-To do so, we consider the symmetric distance between the multiset transformations $function(v)$ and $function(w)$. We claim that for any pair of set elements $v^* \in Multiset(v)$ and $w^* \in Multiset(w)$ $$\abs{MultiSet(function(v)) \Delta MultiSet(function(w))} \leq \abs{MultiSet(v) \Delta MultiSet(w)}$$
-We consider 4 cases. 
-\begin{itemize}
-    \item WLOG $v^* ==$ \texttt{value}, $w^* \neq \texttt{value}$ \\
-    When we apply the \texttt{function()} to the elements, we will still get different values (\texttt{T} and \texttt{F}). So the symmetric distance stays the same after we transform 2 sets with these elements separately.
+We apply the histogram notation, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}, to rewrite the symmetric distance in terms of elements $z$ in $\texttt{function}(v)$ and $\texttt{function}(w)$
+$$d_{Sym}(v, w) = \norm{h_v - h_w}_1 = \sum_{z} \abs{h_v(z) - h_w(z)}.$$ 
+
+We now want to bound the symmetric distance of the transformed vectors:
+
+$$d_{Sym}(\function(v), \function(w)) = \sum_z \abs{h_{\function(v)}(z) - h_{\function(w)}(z)}.$$
+
+Since each function maps each element to boolean $\{ \T, \F\}$, we consider both cases. 
+\begin{enumerate}
+    \item $z = \T$:\\
+    $$\abs{h_{\function(v)}(\T) - h_{\function(w)}(\T)} = \abs{h_v(\texttt{value}) - h_w(\texttt{value})}$$
     
-    \item $v^* == $ \texttt{value}, $w^* == $ \texttt{value} \\
-    When we apply the \texttt{function()} to the elements, we will still get same values (\texttt{T} and \texttt{T}). So the symmetric distance stays the same after we transform 2 sets with these elements separately.
+    \item $z = \F$:\\
     
-    \item $v^* \neq $ \texttt{value}, $w^* \neq $ \texttt{value} \\
-    When we apply the \texttt{function()} to the elements (which are not necessarily the same), we will get the same values (both \texttt{F}). So the symmetric distance must nonstrictly decrease after we transform 2 sets with these elements separately.
+    Since any element $z \neq \texttt{value}$ maps to \F by definition of \texttt{is\_equal}, we consider all elements $z \neq val$:
+    $\abs{h_{\function(v)}(\F) - h_{\function(w)}(\F)} = \abs{\sum_{z \neq val} h_v(z) - h_w(z)}$
     
-\end{itemize}
+    By triangle inequality, we have 
+    $$\abs{h_{\function(v)}(\F) - h_{\function(w)}(\F)} \leq \sum_{z \neq val} \abs{h_v(z) - h_w(z)}$$
+\end{enumerate}
 
-Since we considered all possible pairs of elements, the symmetric distance must nonstrictly decrease after we transform 2 multi sets $v$ and $w$. 
 
-$$\abs{MultiSet(function(v)) \Delta MultiSet(function(w))} \leq \abs{MultiSet(v) \Delta MultiSet(w)}$$ Since the right hand side $\leq d_{in} \leq d_{out}$, then the transformed outputs are $d_{out}$-close: $\abs{MultiSet(function(v)) \Delta MultiSet(function(w))} \leq d_{out}$.
+Therefore, we can apply the first two cases respectively to the third line below. 
+
+\begin{align*}
+    d_{Sym}(\function(v), \function(w)) &= \sum_z \abs{h_{\function(v)}(z) - h_{\function(w)}(z)} \\
+    &= \abs{h_{\function(v)}(\T) - h_{\function(w)}(\T)} + \abs{h_{\function(v)}(\F) - h_{\function(w)}(\F)} \\ 
+    &\leq \abs{h_{v}(\texttt{value}) - h_{w}(\texttt{value})} + \sum_{z \neq \texttt{value}} \abs{h_{v}(z) - h_{w}(z)}\\
+    &= \sum_z \abs{h_{v}(z) - h_{w}(z)} \\
+    &= d_{Sym}(v, w)
+\end{align*}
+
+Since $d_{Sym}(\function(v), \function(w)) \leq d_{Sym}(v, w) \leq \din$ and $\din \leq \dout$, it follows that the transformations are \dout-close: $d_{Sym}(\function(v), \function(w)) \leq \dout$.
+\grace{TODO in the next round of edits, will use Salil's suggested proof outline with row by row transformation abstraction. This will get rid of casework?}
+
 
 \end{enumerate}
 \end{proof}
-
-\silvia{I think you are using the histogram notation implicitly because I don't think you can say something like $function(v) = T$ (for true) because it is a vector/set, and you mean to say one entry, right? } \grace{Not super sure - it's just function applied to a singular element $v$ but that's not a vector of size 1.} \silvia{Ah then it is the map we discussed today}
 
 \end{document}
