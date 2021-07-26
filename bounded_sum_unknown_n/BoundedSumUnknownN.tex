@@ -73,7 +73,7 @@
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{\texttt{d\_in}}
 \newcommand{\dout}{\texttt{d\_out}}
-\newcommand{\Relation}{\mathrm{Relation}}
+\newcommand{\Relation}{\texttt{Relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
 \newcommand{\U}{\texttt{U}}
@@ -113,7 +113,7 @@ The current OpenDP library contains the transformation \texttt{make\_bounded\_su
 
 \newpage
 
-Update: after conversations with Mike about the possible overflow problems in Bounded Sum, the Rust code has been updated. The new version can be found at \url{https://github.com/opendp/opendp/blob/53e8d67b8dde4425930fb8bc397c126cd4f18370/rust/opendp/src/trans/sum.rs#L18-L33}. However, we also keep the code snippet above because this change is still a pull request and is still not part of the OpenDP library.\footnote{As of July 20.} However, the proof below now refers to this most updated version.
+Update: after conversations with Mike about the possible overflow problems in Bounded Sum, the Rust code has been updated. The new version can be found at \url{https://github.com/opendp/opendp/blob/53e8d67b8dde4425930fb8bc397c126cd4f18370/rust/opendp/src/trans/sum.rs#L18-L33}. However, we also keep the code snippet above because this change is still a pull request and is still not part of the OpenDP library.\footnote{As of July 20.} The proof below now refers to this most updated version.
 
 \begin{figure}[ht]
     \includegraphics[width=15cm]{bounded_sum_3.png}
@@ -151,12 +151,12 @@ def MakeBoundedSum(L: T, U: T):
         return d_out >= d_in*max(abs(U), abs(L))
     
     def function(data: Vec(T)) -> T: |\label{line:fn}|
-        result = 0
+        result:T = 0
         for i in data:
             result = saturating_add(result, i) |\label{line:saturate}|
         return result
         
-    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation)
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
 \end{lstlisting}
 
 \section{Proof}
@@ -168,7 +168,7 @@ def MakeBoundedSum(L: T, U: T):
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $d_{out}$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $d_{out}$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
