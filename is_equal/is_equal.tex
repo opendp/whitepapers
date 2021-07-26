@@ -81,7 +81,7 @@
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the \texttt{make\_clamp\_vec} function implementing the clamping function. This is defined in lines 62-71 of the file \texttt{manipulation.rs} in the Git repository (\url{https://github.com/opendp/opendp/blob/21-impute/rust/opendp/src/trans/manipulation.rs#L62-L71}).
+The current OpenDP library contains the \texttt{make\_is\_equal} function implementing the is\_equal function. This is defined in lines 62-71 of the file \texttt{manipulation.rs} in the Git repository (\url{https://github.com/opendp/opendp/blob/21-impute/rust/opendp/src/trans/manipulation.rs#L62-L71}).
 
 \subsection{Code}
 
@@ -101,7 +101,7 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{\texttt{value}} must be of type \texttt{TI}
-        \item Type \texttt{T} must have traits \texttt{static} and \texttt{PartialEq}
+        \item Type \texttt{T} must have trait \texttt{PartialEq}
     \end{itemize}
 \end{itemize}
 
@@ -116,19 +116,19 @@ def make_is_equal(value : TI):
     input_domain = (VectorDomain(AllDomain(T));
     output_domain = (VectorDomain(AllDomain(bool));
     input_metric = SymmetricDistance(); 
-    let output_metric = SymmetricDistance();
+    output_metric = SymmetricDistance();
     
     
     def Relation(d_in: u32, d_out: u32) -> bool: |\label{line:rel}|
         return d_out >= d_in*1
         
-    let function(data: Vec(TI)) -> Vec(Bool): |\label{line:fn}|
+    def function(data: Vec(TI)) -> Vec(Bool): |\label{line:fn}|
         return list(map(data == value)) |\label{line:map}|
 
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, Relation)
 \end{lstlisting}
 
-\grace{ Need to rewrite pseudocode for the next round of edits. Need to confirm whether we return Transformation or make row by row function (might be confusing if it's referencing another function? Also need to check if the mapping works for vectors instead of elements. }
+\grace{ For the next round of the updates, will need to change pseudocode so that it returns the result of a make row by row transformation (which the code does). }
 
 \subsection{Proof}
 \begin{theorem}
@@ -136,7 +136,7 @@ def make_is_equal(value : TI):
 
 For every setting of the input parameters \texttt{value} to \texttt{make\_is\_equal} such that the given preconditions hold, the transformation returned by \texttt{make\_is\_equal} has the following properties:
 \begin{enumerate}
-    \item \textup{(Appropriate output domain).} If vector \texttt{v} of type \texttt{T} is in the input domain, then \texttt{function(v)} is in the output domain.
+    \item \textup{(Appropriate output domain).} If vector $v$ is in the \texttt{input\_domain}, then \texttt{function(v)} is in the \texttt{output\_domain}.
     \item \textup{(Domain-Metric Compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
     \item \textup{(Stability Guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$, where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v), \function(w)$ are $d_{out}$-close under \texttt{output\_metric}.
 \end{enumerate}
