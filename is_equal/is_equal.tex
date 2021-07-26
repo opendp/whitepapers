@@ -113,7 +113,7 @@ To ensure the correctness of the output, we require the following preconditions:
 
 \begin{lstlisting}[language=Python, escapechar=|]
 def make_is_equal(value : TI):
-    input_domain = (VectorDomain(AllDomain(T));
+    input_domain = (VectorDomain(AllDomain(TI));
     output_domain = (VectorDomain(AllDomain(bool));
     input_metric = SymmetricDistance(); 
     output_metric = SymmetricDistance();
@@ -143,7 +143,10 @@ For every setting of the input parameters \texttt{value} to \texttt{make\_is\_eq
 \end{theorem}
 \begin{proof}
 \begin{enumerate}
-\item \textbf{(Appropriate output domain).} The $\function(v)$ has type \texttt{Vec(TI)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(TI)} and returns an element of type \texttt{Vec(Bool)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
+\item \textbf{(Appropriate output domain).} In the case of \texttt{make\_is\_equal}, this corresponds to showing that for every vector $v$ of elements of type \texttt{TI}, \texttt{function}$(v)$ is a vector of elements of type \texttt{bool}.
+
+
+The $\function(v)$ has type \texttt{Vec(TI)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(TI)} and returns an element of type \texttt{Vec(Bool)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
 
 \item \textbf{(Domain-metric compatibility).} 
 
