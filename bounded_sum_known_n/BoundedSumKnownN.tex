@@ -157,6 +157,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     
     def function(data: Vec(T)) -> T: |\label{line:fn}|
         return data.iter().sum() |\label{line:sum}|
+    
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
 \end{lstlisting}
 
@@ -170,7 +171,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $d_{out}$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
