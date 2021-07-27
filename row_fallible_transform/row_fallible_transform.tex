@@ -80,7 +80,7 @@
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the \texttt{make\_row\_by\_row} function implementing the row transform function. This is defined in lines 29-46 of the file \texttt{manipulation.rs} in the Git repository (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/manipulation.rs#L29-L46}).
+The current OpenDP library contains the \texttt{make\_row\_by\_row\_fallible} function implementing the row transform function. This is defined in lines 29-46 of the file \texttt{manipulation.rs} in the Git repository (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/manipulation.rs#L29-L46}).
 
 \includegraphics[width=\textwidth]{make_row_by_row_fallible.jpg}
 
@@ -108,7 +108,7 @@ To ensure the correctness of the output, we require the following preconditions:
 
 
 \begin{lstlisting}[language=Python, escapechar=|]
-def make_row_by_row(atom_input_domain : DIA, atom_output_domain : DOA, atom_function : F):
+def make_row_by_row_fallible(atom_input_domain : DIA, atom_output_domain : DOA, atom_function : F):
     input_domain = VectorDomain(DIA);
     output_domain = VectorDomain(DOA)
     input_metric = SymmetricDistance()
@@ -130,8 +130,8 @@ def make_row_by_row(atom_input_domain : DIA, atom_output_domain : DOA, atom_func
 The necessary definitions for the proof can be found at \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}.
 
 \begin{theorem}
-    For every setting of the input parameters \texttt{(atom\_input\_domain, atom\_output\_domain, atom\_function)} to \texttt{make\_row\_by\_row} such that the given preconditions
-    hold, the transformation returned by \texttt{make\_row\_by\_row} has the following properties:
+    For every setting of the input parameters \texttt{(atom\_input\_domain, atom\_output\_domain, atom\_function)} to \texttt{make\_row\_by\_row\_fallible} such that the given preconditions
+    hold, the transformation returned by \texttt{make\_row\_by\_row\_fallible} has the following properties:
     \begin{enumerate}
         \item \textup{(Appropriate output domain).} For every element $v$ in \texttt{input\_domain}, $\function(v)$ is in \texttt{output\_domain}. % Prof. Vadhan said on 29/6 to leave it as this for now, but maybe in the future we add to the theorem statement what exactly the input domain and output domain are (although of course we already say this in the proof)
         
@@ -142,7 +142,7 @@ The necessary definitions for the proof can be found at \href{https://www.overle
 \end{theorem}
 \begin{proof}
 \begin{enumerate}
-\item \textbf{(Appropriate output domain).} In the case of \texttt{make\_row\_by\_row}, this corresponds to showing that for every vector $v$ of elements of type \texttt{DIA}, \texttt{function}$(v)$ is a vector of elements of type \texttt{DOA}. 
+\item \textbf{(Appropriate output domain).} In the case of \texttt{make\_row\_by\_row\_fallible}, this corresponds to showing that for every vector $v$ of elements of type \texttt{DIA}, \texttt{function}$(v)$ is a vector of elements of type \texttt{DOA}. 
 
 The $\function(v)$ has type \texttt{Vec(DOA)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(DIA)} and returns an element of type \texttt{Vec(DOA)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
 
