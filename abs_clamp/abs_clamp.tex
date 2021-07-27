@@ -102,10 +102,6 @@
 \tableofcontents
 
 \section{Algorithm Implementation}
-% OLD VERSION: The current OpenDP library contains two functions related to Clamping: \texttt{make\_clamp\_vec} and \texttt{make\_clamp\_sensitivity}. Both functions are contained in the file \texttt{manipulation.rs}. In this document, we are referring to the Clamping function \texttt{make\_clamp\_vec}.
-
-% OLD VERSION: The current OpenDP library contains the \texttt{make\_clamp\_vec} function implementing the clamping function. This is defined in lines 68-80 of the file \texttt{clamp.rs} (\url{https://github.com/opendp/opendp/blob/21-impute/rust/opendp/src/trans/clamp.rs}).
-
 \subsection{Code in Rust}
 The current OpenDP library contains the \texttt{make\_clamp} function implementing the clamping function for both the symmetric distance (with vectors) and the absolute distance (with elements) cases. In this proof, we deal with the clamping with absolute distance constructor. This is defined in lines 25-38 of the file \texttt{clamp.rs} in the Git repository\footnote{We refrain from using the clampable domain that is used in the pseudocode until \texttt{TotalOrd} has been fully implemented.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/clamp.rs#L46-L72}).
 
@@ -115,15 +111,8 @@ The current OpenDP library contains the \texttt{make\_clamp} function implementi
     \label{fig:code}
 \end{figure}
 
-% Change: go back to the previous Git push.
-% TODO: add clamp sensitivity?
-
 \subsection{Pseudocode in Python}\label{sec:pseudocode}
 We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. 
-
-%\silvia{We could generalize the input domain below from float to a any general (unspecified) type that admits total ordering, and then add the corresponding precondition to assert that the type \texttt{T} for $L$ and $U$ has the trait \texttt{TotalOrd}. Note that partial ordering is not enough, and we might not be able to clamp in the domain. However, TotalOrd is still not implemented in the OpenDP library.}
-
-%\newpage
 
 \subsubsection*{Preconditions}
 To ensure the correctness of the output, we require the following preconditions:
@@ -140,7 +129,6 @@ To ensure the correctness of the output, we require the following preconditions:
     \item Either a valid \texttt{Transformation} is returned or an error is returned.
 \end{itemize}
 
-% Perhaps: change L for lower and U for upper
 \begin{lstlisting}[language=Python, escapechar=|] 
 def MakeClampAbs(L: T, U: T): |\label{line:def}|
     input_domain = AllDomain(T)
