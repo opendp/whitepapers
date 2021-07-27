@@ -168,7 +168,7 @@ def MakeBoundedSum(L: T, U: T):
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $d_{in}$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $d_{out}$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
@@ -217,6 +217,8 @@ Then, by definition,
    = \Big|\sum_i u_i \cdot h_v(u_i) - \sum_i u_i \cdot h_w(u_i)\Big| = \Big|\sum_i u_i \cdot (h_v(u_i) - h_w(u_i))\Big|.
 \]
 Note that we have the inequality $|\function(v) - \function(w)| \leq |\sum_i v_i - \sum_i w_i|$ above (instead of an equality) due to the definition of \texttt{saturating\_add}. The equality case holds whenever $\sum_i v_i \in \texttt{[get\_min\_value(T), get\_max\_value(T)]}$ and $\sum_i w_i \in \texttt{[get\_min\_value(T),}$  $\texttt{get\_max\_value(T)]}$. In any of the possible cases where $\sum_i v_i > \texttt{get\_max\_value(T)}$ or $\sum_i v_i < \texttt{get\_min\_value(T)}$ and $\sum_i w_i > \texttt{get\_max\_value(T)}$ or $\sum_i w_i < \texttt{get\_min\_value(T)}$, the difference $|\sum_i v_i - \sum_i w_i|$ will always upper bound the value $|\function(v) - \function(w)|$, and hence it is sufficient to carry our proof by only considering the quantity $|\sum_i v_i - \sum_i w_i|$.
+
+\silvia{Might be easier to just state this in terms of absolute clamp and refer to that transformation proof.}
 
 By the definition of absolute distance and symmetric distance, and by applying the triangle inequality, we obtain:
 \[
