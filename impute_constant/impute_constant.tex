@@ -95,8 +95,8 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{\texttt{constant}} must be of type \texttt{DA::NonNull}
-        \item Type \texttt{DA} must have traits \texttt{ImputableDomain} 
-        \item \texttt{DA::NonNull} has traits \texttt{Clone}
+        \item Type \texttt{DA} must have traits \texttt{ImputableDomain}. % Unless the null method is defined, this means that \texttt{DA} is either \texttt{OptionNullDomain<AllDomain<T>>} or \texttt{InherentNullDomain<AllDomain<T>>}.
+        \item \texttt{DA::NonNull} must have traits \texttt{Clone}
     \end{itemize}
 \end{itemize}
 
@@ -106,30 +106,46 @@ To ensure the correctness of the output, we require the following preconditions:
     \item Either a valid \texttt{Transformation} is returned or an error is returned.
 \end{itemize}
 
-\grace{Not sure if I need to include the error check for whether the constant is nonnull in line 69 code. Is it already checked? }
+
 \begin{lstlisting}[language=Python,  escapechar=|]
 def make_impute_constant(constant : DA::NonNull):
-    input_domain = VectorDomain(DA);
-    output_domain = VectorDomain(AllDomain(DA::NonNull));
+    # instead of VectorDomain(DA), we add ::new() to get a new instance of DA. This is bcause DA has the ImputableDomain trait. Discuss among interns.
+    input_domain = VectorDomain(DA::new())
+    output_domain = VectorDomain(AllDomain(DA::NonNull))
+    input_metric = SymmetricDistance()
+    output_metric = SymmetricDistance()
     
+    # check constant for nullity first
+    assert(not constant.is_null); # not DA::is_null(constant) |\label{line:null}|
     def Relation(d_in: u32, d_out: u32) -> bool: |\label{line:rel}|
         return d_out >= d_in*1
 
-    def function(data: Vec(DA)) -> Vec(DA::NonNull): |\label{line:fn}|
-        def impute_constant(x: DA) -> DA::NonNull:
+    def function(data: Vec[DA::Carrier]) -> Vec[DA::NonNull]: |\label{line:fn}|
+        def impute_constant(x: DA) -> DA::NonNull: |\label{line:atom-fn}|
             return constant if x.is_null else x
         return list(map(impute_constant, data)) |\label{line:map}|
         
-    return Transformation(input_domain, output_domain, function(data?), input_metric, output_metric, stability_relation=Relation)
-
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation=Relation)
+    # return make_row_by_row(input_domain, output_domain, impute_constant);
 \end{lstlisting}
 
-\grace{ Will need to change pseudocode so that it returns the result of a make row by row transformation (which the code does) instead of a Transformation directly. Make sure to ask.}
+\grace{ Will need to change pseudocode so that it returns the result of a make row by row transformation (which the code does) instead of a Transformation directly.}
 
 \subsection{Proof}
+\grace{Should this go in the proofs list?}
+\grace{I'm also confused why we have implementation of DA::NonNull but it doesn't do what the name says. Seems pretty counter intuitive.}
+
+
+\begin{lemma}[\texttt{DA::NonNull} contains \texttt{null}] \label{lemma-NonNull}
+\texttt{var} of type \texttt{DA::NonNull} can be of type \texttt{null}.
+\end{lemma}
+\begin{proof}
+Let the domain of atom variable \texttt{DA} be \texttt{InherentNullDomain<AllDomain<f64>>}. Recall that \texttt{InherentNullDomain} exists for types that can represent null inherently in the carrier type. Then the type $$\texttt{DA::NonNull == InherentNullDomain<AllDomain<f64>>::NonNull == f64}.$$ The latter holds because in the \texttt{InherentNullDomain} implementation in the rust code \url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/impute.rs#L48-L56}, the \texttt{type NonNull = Self::Carrier}. The \texttt{Carrier} of \texttt{VectorDomain<AllDomain<T>>} has type \texttt{T}, so in this case the \texttt{::Carrier} is type \texttt{f64}.
+
+Therefore \texttt{var} is also of type \texttt{f64}. \texttt{f64} can contain \texttt{null} values, so we are done.
+\end{proof}
+
 \begin{theorem}
-
-
 For every setting of the input parameters \texttt{constant} to \texttt{make\_impute\_constant} such that the given preconditions hold, the transformation returned by \texttt{make\_impute\_constant} has the following properties:
 \begin{enumerate}
     \item \textup{(Appropriate output domain).} If vector $v$ is in the \texttt{input\_domain}, then \texttt{function(v)} is in the \texttt{output\_domain}.
@@ -139,14 +155,21 @@ For every setting of the input parameters \texttt{constant} to \texttt{make\_imp
 \end{theorem}
 \begin{proof}
 \begin{enumerate}
+
 \item \textbf{(Appropriate output domain).} 
-In the case of \texttt{make\_impute\_constant}, this corresponds to showing that for every vector $v$ of elements of type \texttt{DA}, \texttt{function}$(v)$ is a vector of elements of type \texttt{DA::NonNull}.
+\grace{Things to confirm: (1) is the type signature correct (input and output type)? The input and output domain correct? (2) What is the reason the type signature is not sufficient? Is it because the output type is more general than the output domain? Or is it theoretically because constant can be null value even if it has the type DA::NonNull? (3) so, is it correct that a variable with type DA::NonNull can contain null values?}
+
+
+In the case of \texttt{make\_impute\_constant}, this corresponds to showing that for every vector $v$ of elements of type \texttt{DA},  \texttt{function}$(v)$ is a vector of elements of type \texttt{DA::NonNull}. We can also say that \texttt{function}$(v)$ is a vector of elements that does not contain any \texttt{NonNull} values.
 
 The $\function(v)$ has type \texttt{Vec(DA)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(DA)} and returns an element of type \texttt{Vec(DA::NonNull)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
 
-Lastly, we ensure that return type must be \texttt{NonNull} \grace{Attribute? Property? Carrier} \texttt{DA::NonNull} because we check to make sure the \texttt{constant} being imputed in the function must be null. \grace{Not sure if this needs to be explicit in the pseudo code with the error check, or if I can just cite some trait property.} This check already exists because in the input of the \texttt{make\_impute\_constant}, \texttt{constant} is required to have type of \texttt{DA::NonNull}.
+Lemma \ref{lemma-NonNull} tells us the type signature is not sufficient check because (1) the output type of \texttt{VectorDomain(DA::NonNull)} is more general than the output domain of \texttt{VectorDomain(DA::NonNull)}. \grace{?? The output type matches the output domain I wrote, so something's wrong.} (2) \texttt{constant} can be \texttt{null} even if it is of type \texttt{DA::NonNull}. For (2), if the constant is null, then \texttt{impute\_constant} function (line \ref{line:atomfn}) could potentially return \texttt{null} values since it replaces a \texttt{null} input with \texttt{constant}.
 
-\item \textbf{(Domain-metric compatibility).} The Symmetric distance is both the \texttt{input\_metric} and \texttt{output\_metric}.Symmetric distance is compatible with \texttt{VectorDomain(T)} for any generic type \texttt{T}, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. The theorem holds because for \texttt{make\_impute\_constant}, the input domain is \texttt{VectorDomain(DA)} for generic type \texttt{TI} and the output domain is \texttt{VectorDomain(AllDomain(DA::NonNull))}. 
+
+(1) and (2) are resolved because in the Rust code and pseudo code we check whether \texttt{constant} is null in pseudocode line \ref{line:null}.
+
+\item \textbf{(Domain-metric compatibility).} The Symmetric distance is both the \texttt{input\_metric} and \texttt{output\_metric}. Symmetric distance is compatible with \texttt{VectorDomain(T)} for any generic type \texttt{T}, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. The theorem holds because for \texttt{make\_impute\_constant}, the input domain is \texttt{VectorDomain(DA)} and the output domain is \texttt{VectorDomain(AllDomain(DA::NonNull))}. 
 
 \item \textbf{(Stability guarantee).}     We know that $d_{in} \leq d_{out}$ because \texttt{Relation}($d_{in}$, $d_{out}$) $\texttt{ = True}$. Since the vectors $v, w$ are $d_{in}$-close, then $d_{Sym}(v, w) \leq d_{in}$.
     
