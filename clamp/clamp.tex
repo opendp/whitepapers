@@ -104,7 +104,7 @@
 \section{Algorithm Implementation}
 
 \subsection{Code in Rust}
-The current OpenDP library contains the \texttt{make\_clamp\_vec} function implementing the clamping function. This is defined in lines 25-38 of the file \texttt{manipulation.rs} in the Git repository\footnote{As of June 16, 2021. Since then, the code has been updated to include a more general clampable domain, which is not yet finished.} (\url{https://github.com/opendp/opendp/blob/58feb788ec78ce739caaf3cad8471c79fd5e7132/rust/opendp/src/trans/manipulation.rs#L25-L38}).
+The current OpenDP library contains the \texttt{make\_clamp\_vec} function implementing the clamping function. This is defined in lines 25-38 of the file \texttt{manipulation.rs} in the Git repository\footnote{As of June 16, 2021. Since then, the code has been updated to include a more general clampable domain, which is not yet finished. We decided not to use the clampable domain in the proofs given that we are separating the vector and scalar cases into two different proof documents.} (\url{https://github.com/opendp/opendp/blob/58feb788ec78ce739caaf3cad8471c79fd5e7132/rust/opendp/src/trans/manipulation.rs#L25-L38}).
 
 \begin{figure}[ht]
     \includegraphics[width=16cm]{clamp_rust.png}
@@ -112,7 +112,7 @@ The current OpenDP library contains the \texttt{make\_clamp\_vec} function imple
     \label{fig:code}
 \end{figure}
 
-\silvia{Flag: will change to the new clampable domain code once total ordering has been implemented.}
+%\silvia{Flag: will change to the new clampable domain code once total ordering has been implemented. Decided on 2/8}
 
 \subsection{Pseudocode in Python}\label{sec:pseudocode}
 We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. 
@@ -123,7 +123,7 @@ To ensure the correctness of the output, we require the following preconditions:
 \begin{itemize}
     \item \textbf{User-specified types:}
     \begin{itemize}
-        \item Type \texttt{T} must have trait \texttt{TotalOrd}.\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented.}
+        \item Type \texttt{T} must have trait \texttt{TotalOrd}.\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented. On the architecture meeting of August 4 we discussed different implementations of \texttt{TotalOrd}.}
     \end{itemize}
 \end{itemize}
 
@@ -142,7 +142,7 @@ def MakeClamp(L: T, U: T): |\label{line:def}|
     def Relation(d_in: u32, d_out: u32) -> bool: |\label{line:rel}|
         return d_out >= d_in*1
     
-    def function(data: Vec(T)) -> Vec(T): |\label{line:fn}|
+    def function(data: Vec[T]) -> Vec[T]: |\label{line:fn}|
         def clamp(x: T) -> T: |\label{line:clamp}|
             return max(min(x, U), L)
         return list(map(clamp, data)) |\label{line:map}|
@@ -168,10 +168,10 @@ The necessary definitions for the proof can be found at \href{https://www.overle
 \end{theorem}
 
 \begin{proof}
-\textbf{(Appropriate output domain).} In the case of \texttt{MakeClamp}, this corresponds to showing that for every vector $v$ of elements of type \texttt{T}, $\function(v)$ is a vector of elements of type \texttt{T} which are contained in the interval \texttt{[L, U]}. For that, we need to show two things: first, that \texttt{function(v)} has type \texttt{Vec(T)}.
+\textbf{(Appropriate output domain).} In the case of \texttt{MakeClamp}, this corresponds to showing that for every vector $v$ of elements of type \texttt{T}, $\function(v)$ is a vector of elements of type \texttt{T} which are contained in the interval \texttt{[L, U]}. For that, we need to show two things: first, that \texttt{function(v)} has type \texttt{Vec[T]}.
 Second, that they belong to the interval \texttt{[L, U]}.
 
-Firstly, that $\function(v)$ has type \texttt{Vec(T)} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec(T)} and returns an element of type \texttt{Vec(T)}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
+Firstly, that $\function(v)$ has type \texttt{Vec[T]} follows from the assumption that element $v$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{Vec[T]} and returns an element of type \texttt{Vec[T]}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
 
 Secondly, we need to show that the vector entries belong to the interval \texttt{[L, U]}. This follows from the definition of \texttt{clamp} in line \ref{line:clamp}. According to line \ref{line:clamp} in the pseudocode, there are 3 possible cases to consider:
 \begin{enumerate}
@@ -184,9 +184,7 @@ In all three cases, the returned value of type \T is contained in the interval \
 Lastly, the necessary condition that \texttt{L} $\leq$ \texttt{U} is checked when declaring \texttt{output\_domain = VectorDomain(IntervalDomain(L, U))} in line~\ref{line:output} of the pseudocode. This check already exists via the construction of \texttt{IntervalDomain}, which returns an error if \texttt{L} $>$ \texttt{U}. Both \texttt{L} and \texttt{U} have type \texttt{T} by their precondition requirement. Both the definition of \texttt{IntervalDomain} and that of the \texttt{clamp} function (line~\ref{line:clamp} in the pseudocode, which uses the \texttt{min} and \texttt{max} functions) require that \texttt{T} implements \texttt{TotalOrd}, which holds by the preconditions.
 
 \smallskip
-\textbf{(Domain-metric compatibility).} 
-
-For \texttt{MakeClamp}, both the input and output cases correspond to showing that \texttt{VectorDomain(T)} is compatible with symmetric distance. This follows directly from the definition of symmetric distance, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}.
+\textbf{(Domain-metric compatibility).} For \texttt{MakeClamp}, both the input and output cases correspond to showing that \texttt{VectorDomain(T)} is compatible with symmetric distance. This follows directly from the definition of symmetric distance, as stated in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}.
 
 \smallskip
 \textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(v)$ and $\function(w)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
@@ -208,15 +206,13 @@ For each element $z \in \MultiSet(v) \cup \MultiSet(w)$, where $z$ has type \tex
     remains invariant, because the quantity $|h_{v}(z) - h_{w}(z)|$ is added to $|h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})|$, given that $\clamp(z) = \texttt{U}$. 
     
     Suppose $z$ has multiplicity $k_v \geq 0$ in $\MultiSet(v)$ and multiplicity $k_w \geq 0$ in $\MultiSet(w)$, where $k_v \neq k_w$. After considering $z$, the value $h_{\function(v)}(\texttt{U})$ becomes $h_{\function(v)}(\texttt{U}) + k_v$, and $h_{\function(w)}(\texttt{U})$ becomes $h_{\function(w)}(\texttt{U}) + k_w$. Hence the quantity $|h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})|$ increases by at most $|h_v(z) - h_w(z)|$, since, by the triangle inequality,
-    \[
-         |(h_{\function(v)}(\texttt{U}) + k_v) - (h_{\function(w)}(\texttt{U}) + k_w)| \leq
-    \]
-    \[
-         \leq |h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})| + |k_v - k_w| =
-    \]
-    \[
-        = |h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})| + |h_v(z) - h_w(z)|.
-    \]
+    \begin{align*}
+         & |(h_{\function(v)}(\texttt{U}) + k_v) - (h_{\function(w)}(\texttt{U}) + k_w)| \leq
+    \\[0.2cm]
+         & \leq |h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})| + |k_v - k_w| =
+    \\[0.2cm]
+        & = |h_{\function(v)}(\texttt{U}) - h_{\function(w)}(\texttt{U})| + |h_v(z) - h_w(z)|.
+    \end{align*}
     The same argument applies whenever $z < \texttt{L}$. 
     
     \questionc{The first subcase discussed here, i.e., when $k_v = k_w$, is also proven by the triangle inequality expression above, but it seemed clean to separate the case where the total sum remains invariant.}
@@ -247,6 +243,6 @@ Therefore,
 as we wanted to show.
 \end{proof}
 
-\silvia{Flag: will change to the simplified general proof scheme that Prof. Vadhan suggested in the Git repo once we have finished adding the row-by-row transform lemmas in the proof definitions document.}
+\silvia{Flag: will change to the simplified general proof scheme for row-by-row transformations that Prof. Vadhan suggested in the Git repo once the \texttt{make\_row\_by\_row} transformation and related lemmas have been approved.}
 
 \end{document}
