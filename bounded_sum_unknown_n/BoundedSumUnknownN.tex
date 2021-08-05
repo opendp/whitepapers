@@ -147,10 +147,10 @@ def MakeBoundedSum(L: T, U: T):
     input_metric = SymmetricDistance()
     output_metric = AbsoluteDistance(T)
     
-    def Relation(d_in: u32, d_out: u32) -> bool: |\label{line:rel}|
-        return d_out >= d_in*max(abs(U), abs(L))
+    def Relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
+        return d_out >= inf_cast(d_in, T) * max(abs(U), abs(L))
     
-    def function(data: Vec(T)) -> T: |\label{line:fn}|
+    def function(data: Vec[T]) -> T: |\label{line:fn}|
         result:T = 0
         for i in data:
             result = saturating_add(result, i) |\label{line:saturate}|
@@ -239,5 +239,7 @@ Lastly, since by assumption $v$ and $w$ are $\din$-close, by the defined $\Relat
     \leq \max{(|\texttt{U}|, |\texttt{L}|)} \cdot \din \leq \dout,
 \]
 as we wanted to show.
+
+\silvia{Flag: need to account for possible rounding errors given the non-closure of float addition.}
 
 \end{document}
