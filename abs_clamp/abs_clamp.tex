@@ -103,13 +103,15 @@
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the \texttt{make\_clamp} function implementing the clamping function for both the symmetric distance (with vectors) and the absolute distance (with elements) cases. In this proof, we deal with the clamping with absolute distance constructor. This is defined in lines 25-38 of the file \texttt{clamp.rs} in the Git repository\footnote{We refrain from using the clampable domain that is used in the pseudocode until \texttt{TotalOrd} has been fully implemented.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/clamp.rs#L46-L72}).
+The current OpenDP library contains the \texttt{make\_clamp} function implementing the clamping function for both the symmetric distance (with vectors) and the absolute distance (with elements) cases. In this proof, we deal with the clamping with absolute distance constructor. This is defined in lines 25-38 of the file \texttt{clamp.rs} in the Git repository\footnote{We refrain from using the clampable domain that is used in the pseudocode.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/clamp.rs#L46-L72}).
 
 \begin{figure}[ht]
     \includegraphics[width=15cm]{abs_clamp_rust.png}
     \centering
     \label{fig:code}
 \end{figure}
+
+\silvia{The Rust code shows the \texttt{ClampableDomain} \texttt{impl} for absolute distance instead of the \texttt{pub fn} \texttt{make\_clamp} because it is the part that shows the relevant differences between absolute distance clamping and symmetric distance clamping.}
 
 \subsection{Pseudocode in Python}\label{sec:pseudocode}
 We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. 
@@ -184,22 +186,25 @@ Lastly, the necessary condition that \texttt{L} $\leq$ \texttt{U} is checked whe
 \smallskip
 \textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(x)$ and $\function(y)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
 
-Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeClampAbs} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\din \leq \dout$. Moreover, $v, w$ are assumed to be $\din$-close. By the definition of the absolute distance metric, this is equivalent to stating that $d_{Abs}(x, y) = |x - y| \leq \din$.
+Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeClampAbs} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \min(\din, \texttt{U-L})$. Moreover, $v, w$ are assumed to be $\din$-close. By the definition of the absolute distance metric, this is equivalent to stating that $d_{Abs}(x, y) = |x - y| \leq \din$.
 
 We now consider the values $\function(x)$ and $\function(y)$. There are three possible cases to consider:
 \begin{enumerate}
     \item Both $x \in \texttt{[L, U]}$ and $y \in \texttt{[L, U]}$: in this case, $x = \function(x)$ and $y = \function(y)$. Hence, $d_{Abs}(x, y) = |x-y| = |\function(x) - \function(y)|$.
     \item Wlog, $x \in \texttt{[L, U]}$ and $y \notin \texttt{[L, U]}$: if $y < \texttt{L}$ then $y < \function(y) = \texttt{L}$, and if $y > \texttt{U}$, then $y > \function(y) = \texttt{U}$. In both cases, it follows that $|\function(y) - x| < |y - x| = d_{Abs}(x, y)$, since $\function(x) = x$.
-    \item Both $x, y \notin \texttt{[L, U]}$: in this case, if both $x, y < \texttt{L}$ or both $x, y > \texttt{U}$, then $|\function(x) - \function(y)| = 0$. Because the absolute value metric is always non-negative, it follows that $|\function(x) - \function(y)| \leq |x - y|$. On the other hand, if $x < \texttt{L}$ and $y > \texttt{U}$ or viceversa, then $|\texttt{U}-\texttt{L}| < |x-y|$. Since by the appropriate domain property we know that $\function(x), \function(y) = \texttt{[L, U]}$, it follows that $|\function(x) - \function(y)| \leq |\texttt{U}-\texttt{L}| < |x-y|$.
+    \item Both $x, y \notin \texttt{[L, U]}$: in this case, if both $x, y < \texttt{L}$ or both $x, y > \texttt{U}$, then $|\function(x) - \function(y)| = 0$. Because the absolute value metric is always non-negative, it follows that $|\function(x) - \function(y)| \leq |x - y|$. On the other hand, if $x < \texttt{L}$ and $y > \texttt{U}$ or viceversa, then $|\texttt{U}-\texttt{L}| < |x-y|$. Since by the appropriate domain property we know that $\function(x), \function(y) \in \texttt{[L, U]}$, it follows that $|\function(x) - \function(y)| \leq |\texttt{U}-\texttt{L}|$.
 \end{enumerate}
 
-In all cases described above, we conclude that
+By merging the cases considered above, we conclude that
 \[
-    d_{Abs}(\function(x), \function(y)) = |\function(x) - \function(y)| \leq |x-y| = d_{Abs}(x, y).
+    d_{Abs}(\function(x), \function(y)) = |\function(x) - \function(y)| \leq 
 \]
-By the initial assumptions, we recall that $\din \leq \dout$, and that $x, y$ are $\din$-close. Then,
 \[
-    d_{Abs}(\function(x), \function(y)) \leq |x-y| \leq \din \leq \dout.
+    \min(|x-y|, \texttt{U-L}) = \min(d_{Abs}(x, y), \texttt{U-L}) \leq \min(\din, \texttt{U-L}).
+\]
+By the initial assumptions, we recall that $\dout $, and that $x, y$ are $\din$-close. Then,
+\[
+    d_{Abs}(\function(x), \function(y)) \leq \min(\din, \texttt{U-L}) \leq \dout.
 \]
 Therefore,
 \[
@@ -207,7 +212,5 @@ Therefore,
 \]
 as we wanted to show.
 \end{proof}
-
-\silvia{Flag: what would be the best way to present this now that we added the row-by-row transform lemma and in conjunction with the vector clamping transformation (with symmetric distance)? Or expand the row-by-row transform with absolute distance and vectors of length 1 (i.e., just \texttt{AllDomain})?}
 
 \end{document}
