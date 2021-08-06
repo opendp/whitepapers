@@ -146,7 +146,7 @@ def MakeBoundedSum(L: T, U: T):
             result = saturating_add(result, i) |\label{line:saturate}|
         return result
         
-    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
 
 \section{Proof}
