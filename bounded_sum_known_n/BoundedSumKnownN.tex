@@ -6,12 +6,12 @@
 \usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{xurl}
 \hypersetup{colorlinks,
     linkcolor=blue,
     citecolor=blue,      
-    urlcolor=blue
+    urlcolor=blue,
 }
-\usepackage{xurl}
 
 \oddsidemargin0.1cm 
 \evensidemargin0.8cm
@@ -73,10 +73,10 @@
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{\texttt{d\_in}}
 \newcommand{\dout}{\texttt{d\_out}}
-\newcommand{\T}{\texttt{T} }
-\newcommand{\Relation}{\texttt{Relation}}
+\newcommand{\Relation}{\texttt{relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
+\newcommand{\U}{\texttt{U}}
 \newcommand{\True}{\texttt{True}}
 \newcommand{\False}{\texttt{False}}
 \newcommand{\clamp}{\texttt{clamp}}
@@ -87,11 +87,11 @@
 \newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
 \newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
 \newcommand{\connor}[1]{{ {\color{teal}{(connor)~#1}}}}
-\newcommand{\mike}[1]{{ {\color{green}{(mike)~#1}}}}
+
 \newcommand{\todo}{{\textcolor{red}{TODO }}}
 
 
-\title{Privacy Proofs for OpenDP: Clamping II}
+\title{Privacy Proofs for OpenDP: Bounded Sum with Known $n$}
 \author{S\'ilvia Casacuberta}
 \date{Summer 2021}
 
@@ -103,18 +103,16 @@
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the \texttt{make\_clamp} function implementing the clamping function for both the symmetric distance (with vectors) and the absolute distance (with elements) cases. In this proof, we deal with the clamping with absolute distance constructor. This is defined in lines 25-38 of the file \texttt{clamp.rs} in the Git repository\footnote{We refrain from using the clampable domain that is used in the pseudocode.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/clamp.rs#L46-L72}).
+The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing the bounded sum function with known $n$. This is defined in lines 36-55 of the file \texttt{sum.rs} in the Git repository\footnote{Updated on August 5, 2021.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/sum.rs#L36-L55}).
 
 \begin{figure}[ht]
-    \includegraphics[width=15cm]{abs_clamp_rust.png}
+    \includegraphics[width=15cm]{bounded_sum_2.png}
     \centering
     \label{fig:code}
 \end{figure}
 
-\silvia{The Rust code shows the \texttt{ClampableDomain} \texttt{impl} for absolute distance instead of the \texttt{pub fn} \texttt{make\_clamp} because it is the part that shows the relevant differences between absolute distance clamping and symmetric distance clamping.}
-
-\subsection{Pseudocode in Python}\label{sec:pseudocode}
-We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. 
+\subsection{Pseudocode in Python}
+We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}.
 
 \subsubsection*{Preconditions}
 To ensure the correctness of the output, we require the following preconditions:
@@ -122,8 +120,10 @@ To ensure the correctness of the output, we require the following preconditions:
 \begin{itemize}
     \item \textbf{User-specified types:}
     \begin{itemize}
-        \item Type \texttt{T} must have traits \texttt{TotalOrd},\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented.} \texttt{DistanceCast}, and \texttt{Sub(Output=T)}.
-    \end{itemize}
+        \item Variable \texttt{n} must be of type \texttt{usize}.
+        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd},\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented. Then, \texttt{TotalOrd} will be redundant, since the trait \texttt{TotalOrd} is part of the trait \texttt{DistanceConstant}.} \texttt{CheckedMul}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
+        \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. \questionc{Same question that Connor asked in \texttt{make\_count} -- this is not needed for the proof.}
+\end{itemize}
 \end{itemize}
 
 \subsubsection*{Postconditions}
@@ -131,86 +131,186 @@ To ensure the correctness of the output, we require the following preconditions:
     \item Either a valid \texttt{Transformation} is returned or an error is returned.
 \end{itemize}
 
-\begin{lstlisting}[language=Python, escapechar=|] 
-def MakeClampAbs(L: T, U: T): |\label{line:def}|
-    input_domain = AllDomain(T)
-    output_domain = IntervalDomain(L, U) |\label{line:output}|
-    input_metric = AbsoluteDistance(Q)
-    output_metric = AbsoluteDistance(Q)
+\begin{lstlisting}[language=Python, escapechar=|]
+def MakeBoundedSumN(L: T, U: T, n: usize):
+    input_domain = SizedDomain(VectorDomain(IntervalDomain(L, U)), n)
+    output_domain = AllDomain(T)
+    input_metric = SymmetricDistance()
+    output_metric = AbsoluteDistance(T)
     
-    def Relation(d_in: Q, d_out: Q) -> bool: |\label{line:rel}|
-        return d_out >= min(d_in, U-L)
-        
-    def function(x: T) -> T: |\label{line:fn}|
-        return max(min(x, U), L) |\label{line:return}|
+    n_ = exact_int_cast(n, T)
+    if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: 
+        raise Exception('Potential overflow') |\label{line:max}|
+    
+    def relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
+        return d_out >= inf_cast(d_in, T) * (U - L) / exact_int_cast(2, T)
+    
+    def function(data: Vec[T]) -> T: |\label{line:fn}|
+        return sum(data) |\label{line:sum}|
     
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
 \end{lstlisting}
 
-\section{Proof}
-The necessary definitions for the proof can be found at \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}.
+\silvia{Flag: maybe change the type of $\din$ to \texttt{IntDistance} given the recent update of the library.}
 
+\newpage
+
+\section{Proof}
 \subsection{Symmetric Distance}
 \begin{theorem}
-    For every setting of the input parameters \texttt{L, U} to \texttt{MakeClampAbs} such that the given preconditions
-    hold, the transformation returned by \texttt{MakeClampAbs} has the following properties:
+    For every setting of the input parameters \texttt{(L, U, n)} to \texttt{MakeBoundedSumN}, the transformation returned by \texttt{MakeBoundedSumN} has the following properties:
     \begin{enumerate}
         \item \textup{(Appropriate output domain).} For every element $v$ in \texttt{input\_domain}, $\function(v)$ is in \texttt{output\_domain}.
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\Relation(\din, \dout) = \True$, then $\function(v), \function(w)$ are $\dout$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-\textbf{(Appropriate output domain).} In the case of \texttt{MakeClampAbs}, this corresponds to showing that for every element $x$ of type \texttt{T}, $\function(x)$ is an element of type \texttt{T} and contained in the interval \texttt{[L, U]}. For that, we need to show two things: first, that \texttt{function(x)} has type \texttt{T}. Second, that it belongs to the interval \texttt{[L, U]}.
-
-Firstly, that $\function(x)$ has type \texttt{T} follows from the assumption that element $x$ is in \texttt{input\_domain} and from the type signature of \texttt{function} in line~\ref{line:fn} of the pseudocode (Section~\ref{sec:pseudocode}), which takes in an element of type \texttt{T} and returns an element of type \texttt{T}. If the Rust code compiles correctly, then the type correctness follows from the definition of the type signature enforced by Rust. Otherwise, the code raises an exception for incorrect input type. 
-
-Secondly, we need to show that the vector entries belong to the interval \texttt{[L, U]}. This follows from the definition of \texttt{function} in line \ref{line:fn}. According to line \ref{line:fn} in the pseudocode, there are 3 possible cases to consider:
-\begin{enumerate}
-    \item \texttt{x} $>$ \texttt{U}: then $\texttt{function(x)}$ returns \texttt{U}.
-    \item \texttt{x} $\in$ \texttt{[L, U]}: then $\texttt{function(x)}$ returns \texttt{x}.
-    \item \texttt{x} $<$ \texttt{L}: then $\texttt{function(x)}$ returns \texttt{L}.
-\end{enumerate}
-In all three cases, the returned value of type \T is contained in the interval \texttt{[L, U]}. Hence, the element $\function(x)$ returned in line~\ref{line:return} of the pseudocode is an element of \texttt{output\_domain}.
-
-Lastly, the necessary condition that \texttt{L} $\leq$ \texttt{U} is checked when declaring \texttt{output\_domain = IntervalDomain(L, U)} in line~\ref{line:output} of the pseudocode. This check already exists via the construction of \texttt{IntervalDomain}, which returns an error if \texttt{L} $>$ \texttt{U}. Both \texttt{L} and \texttt{U} have type \texttt{T} by their precondition requirement. Both the definition of \texttt{IntervalDomain} and that of \texttt{function} (line~\ref{line:fn} in the pseudocode, which uses the \texttt{min} and \texttt{max} functions) require that \texttt{T} implements \texttt{TotalOrd}, which holds by the preconditions.
-
-\smallskip
-\textbf{(Domain-metric compatibility).}  For \texttt{MakeClampAbs}, this corresponds to showing that both \texttt{AllDomain(T)} and \texttt{IntervalDomain(L, U)} are compatible with absolute distance. The first one follows directly from the definition of absolute distance, as stated in \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. The second one follows from the compatibility of absolute distance and \texttt{AllDomain(T)} along with the fact that \texttt{IntervalDomain(L, U)} is a subdomain of \texttt{AllDomain(T)}. By Theorem 2.1 in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}, this implies that \texttt{IntervalDomain(L, U)} is compatible with absolute distance as well. 
+    \textbf{(Appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this corresponds to showing that for every vector $v$ in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function}$(v)$ belongs to \texttt{AllDomain(T)}.
+    The output correctness follows from the type signature of \texttt{function} as defined in line \ref{line:fn} and from the overflow check done through the \texttt{checked\_mul} function in line \ref{line:max}. The latter ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in line \ref{line:sum}. Otherwise, an exception for potential overflow will be raised, as described in line~\ref{line:max}. The former automatically enforces that \texttt{function(v)} has type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
     
-\silvia{Flag: this is an example of the subdomain issues that we have been discussing during the week of July 19. Hence this paragraph might need some phrasing updates when the compatibility pairing constructor and the subdomain trait are implemented.}
+    \questionc{Should I say something about the \texttt{exact\_int\_cast} check?}
+    
+    \smallskip
+    \textbf{(Domain-metric compatibility).} For \texttt{MakeBoundedSumN}, this corresponds to showing that \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)} is compatible with symmetric distance, and that \texttt{AllDomain(T)} is compatible with absolute distance. The latter follows directly from the list of compatible domains in the definition of absolute distance, as described in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. The former follows from the compatibility of symmetric distance and \texttt{VectorDomain(D)} as stated in the definition of symmetric distance along with the fact that \texttt{SizedDomain(VectorDomain(D))} is a subdomain of \texttt{VectorDomain(D)}. By Theorem 2.1 in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}, this implies that \texttt{SizedDomain(VectorDomain(D))} is compatible with symmetric distance as well. 
+    
+    \silvia{Flag: this is an example of the subdomain issues that we have been discussing during the week of July 19. Hence this paragraph might need some phrasing updates when the compatibility pairing constructor and the subdomain trait are implemented.}
+    
+    \smallskip
+    \textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(v)$ and $\function(w)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
+    
+    Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \din \cdot (\U - \texttt{L})/2$. Moreover, $v, w$ are assumed to be $\din$-close. By the definition of the symmetric difference metric, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$.
 
-\smallskip
-\textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(x)$ and $\function(y)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
+    Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult \url{https://www.overleaf.com/project/60d214e390b337703d200982}.}  it follows that
+    \[
+        d_{Sym}(v, w) = \lVert h_{v} - h_{w}\rVert_1 = \sum_z |h_v(z) - h_w(z)| \leq \din.
+    \]
+    We want to show that
+    \[
+        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{\texttt{U-L}}{2}.
+    \]
+    This would imply that
+    \begin{equation}\label{eq:abs1}
+        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{\texttt{U-L}}{2} \leq \din \cdot \dfrac{\texttt{U-L}}{2},
+    \end{equation}
+    and by the stability relation this will imply that
+    \begin{equation}\label{eq:abs2}
+        d_{Abs}(\function(v), \function(w)) \leq \dout,
+    \end{equation}
+    as we want to see. 
+\end{proof}
 
-Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeClampAbs} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \min(\din, \texttt{U-L})$. Moreover, $v, w$ are assumed to be $\din$-close. By the definition of the absolute distance metric, this is equivalent to stating that $d_{Abs}(x, y) = |x - y| \leq \din$.
+\subsection{First proof: using the path property (adjacent pairs approach)}
 
-We now consider the values $\function(x)$ and $\function(y)$. There are three possible cases to consider:
-\begin{enumerate}
-    \item Both $x \in \texttt{[L, U]}$ and $y \in \texttt{[L, U]}$: in this case, $x = \function(x)$ and $y = \function(y)$. Hence, $d_{Abs}(x, y) = |x-y| = |\function(x) - \function(y)|$.
-    \item Wlog, $x \in \texttt{[L, U]}$ and $y \notin \texttt{[L, U]}$: if $y < \texttt{L}$ then $y < \function(y) = \texttt{L}$, and if $y > \texttt{U}$, then $y > \function(y) = \texttt{U}$. In both cases, it follows that $|\function(y) - x| < |y - x| = d_{Abs}(x, y)$, since $\function(x) = x$.
-    \item Both $x, y \notin \texttt{[L, U]}$: in this case, if both $x, y < \texttt{L}$ or both $x, y > \texttt{U}$, then $|\function(x) - \function(y)| = 0$. Because the absolute value metric is always non-negative, it follows that $|\function(x) - \function(y)| \leq |x - y|$. On the other hand, if $x < \texttt{L}$ and $y > \texttt{U}$ or viceversa, then $|\texttt{U}-\texttt{L}| < |x-y|$. Since by the appropriate domain property we know that $\function(x), \function(y) \in \texttt{[L, U]}$, it follows that $|\function(x) - \function(y)| \leq |\texttt{U}-\texttt{L}|$.
-\end{enumerate}
-
-By merging the cases considered above, we conclude that
+To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{\texttt{U-L}}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 4.2 in the document \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. With these three lemmas, which are applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
 \[
-    d_{Abs}(\function(x), \function(y)) = |\function(x) - \function(y)| \leq 
+d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq \texttt{U} - \texttt{L}.
+\]
+By Lemma 4.3 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$. Wlog, let this different element be the $k$-th element of $x$ and $y$, where $x_k = \alpha$, $y_k = \beta$ with $\alpha \neq \beta$.\footnote{The first element of a vector is indexed by 0.} Then,
+\[
+    d_{Abs}(\texttt{function}(x), \texttt{function}(y)) = |\texttt{function}(x) - \texttt{function}(y)| = 
 \]
 \[
-    \min(|x-y|, \texttt{U-L}) = \min(d_{Abs}(x, y), \texttt{U-L}) \leq \min(\din, \texttt{U-L}).
+    = \Big|\sum_{i=0}^{\texttt{n}-1}x_i - \sum_{i=0}^{\texttt{n}-1}y_i\Big| = \Big| \sum_{i=0}^{\texttt{n}-1} (x_i - y_i) \Big| = |0 + (x_k - y_k)| = |\alpha - \beta| \leq |\texttt{U-L}| = \texttt{U-L},
 \]
-By the initial assumptions, we recall that $\dout $, and that $x, y$ are $\din$-close. Then,
+since \texttt{U} $\geq$ \texttt{L}. Therefore, applying Lemma 4.4 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, it follows that \texttt{function} is $($\texttt{U-L}$)/2$-stable. By definition, this implies that for any $v, w \in$ \texttt{input\_domain},
 \[
-    d_{Abs}(\function(x), \function(y)) \leq \min(\din, \texttt{U-L}) \leq \dout.
+    d_{Abs}(\texttt{function}(v), \texttt{function}(w)) \leq d_{Sym}(v, w) \cdot (\texttt{U-L})/2.
 \]
-Therefore,
+Lastly, by Equations~\ref{eq:abs1} and \ref{eq:abs2} this implies that
 \[
-    d_{Abs}(\function(x), \function(y)) \leq \dout,
+    d_{Abs}(\function(v), \function(w)) \leq \dout,
+\]
+as we want to prove.
+
+\silvia{Flag: this will be updated to the more general notion of path property (through shortest path metric on a graph), but this matches the current version of the proofs document.}
+
+\silvia{Flag: need to account for rounding errors in the stability relation given the non-closure of float addition, as discussed on the week of August 2nd. We are figuring this out.}
+
+\newpage
+
+\subsection{Second proof: direct method (all pairs approach)}
+\subsubsection{General inequality}
+The general statement that we will need to prove is the following. For any elements $a_1, \ldots, a_n \in$ \texttt{[L, U]} and $b_1, \ldots, b_n \in \mathbb{Z}$ such that $\sum_i b_i = 0$, 
+\[
+    \Big|\sum_i a_ib_i\Big| \leq \dfrac{a_{\max}-a_{\min}}{2} \cdot \Big(\sum_i |b_i| \Big).
+\]
+Note that this corresponds to the tightest possible \texttt{[L, U]} interval.
+
+Let $u$ denote the vector formed by all the elements of $v$ and $w$ \textit{without multiplicities} (i.e., $u$ contains exactly once each of the elements in $\MultiSet(v) \cup \MultiSet(w)$, in any order). Let $u_i$ denote the $i$-th element of $u$, and similarly for $v$ and $w$, and let $m$ denote \texttt{len}$(u)$.  
+Then, by definition,
+\[
+    d_{Sym}(v, w) = \sum_z \Big|h_v(z) - h_w(z)\Big| = \sum_i \Big|h_v(u_i) - h_w(u_i)\Big|;
+\]
+\[
+    d_{Abs}(\function(v), \function(w)) = \Big|\function(v) - \function(w)\Big| = \Big|\sum_i v_i - \sum_i w_i\Big| = 
+\]
+\[
+   = \Big|\sum_i u_i \cdot h_v(u_i) - \sum_i u_i \cdot h_w(u_i)\Big| = \Big|\sum_i u_i \cdot (h_v(u_i) - h_w(u_i))\Big|.
+\]
+Because by assumption $v, w \in $ \texttt{input\_domain = SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, we know that \texttt{len}$(v) =$ \texttt{len}$(w) =$ \texttt{n}. Therefore,
+
+\begin{equation}\label{eq:sum}
+    \sum_i (h_v(u_i) - h_w(u_i)) = \texttt{n}-\texttt{n} = 0.
+\end{equation}
+We now separate the positive values from the negative ones by defining vectors $x, y, \lambda$ and $\mu$ as follows. Let
+\[
+    h_v(u_{k_1})-h_w(u_{k_1}) \leq \ldots \leq 0 \leq h_v(u_{k_m})-h_w(u_{k_m}) 
+\]
+be the sequence of the $\{h_v(u_i)-h_w(u_{i})\}$ in increasing order. Let $s$ be the smallest value such that $h_v(u_{k_s})-h_w(u_{k_s})$ is greater or equal to 0 (we set $t=m$ if all the values are negative). Then, we define the vector entries of $x, y, \lambda, \mu$ as
+\[
+    x_j = h_v(u_{k_{j}})-h_w(u_{k_{j}}),
+\]
+\[
+    \lambda_j = u_{j},
+\]
+for $s \leq j \leq m$, and
+\[
+    y_j = h_v(u_{k_{j}})-h_w(u_{k_{j}}),
+\]
+\[
+    \mu_j = u_j
+\]
+for $0 \leq j < s$.\footnote{It is not necessary that the entries of $x_j$ and $y_j$ are ordered; only that they only contain positive and negative values, respectively, and that the $\lambda$ and $\mu$ values match their corresponding indices.} That is, $x$ contains all of the positive values and $y$ all of the negative ones.
+
+Let $r$ denote the length of vectors $x$ and $\lambda$ as constructed above, and by construction $s$ denotes the length of vectors $y$ and $\mu$ above (where $r+s = m$). Hence we obtain the values $x_1, \ldots, x_r \geq 0$ and $y_1, \ldots, y_s \leq$ for some $r, s \in \mathbb{Z}$, such that
+\[
+    \sum_i x_i + \sum_j y_j = 0 \quad \textrm{and so} \quad \sum_i x_i = \sum_j |y_j|,
+\]
+by Equation~\ref{eq:sum}. Then,
+\[
+    d_{Abs}(\function(v), \function(w)) = \Big|\sum_i u_i \cdot (h_v(u_i) - h_w(u_i))\Big| =
+\]
+\[
+    = |\lambda_1 x_1 + \cdots + \lambda_r x_r + \mu_1 y_1 + \cdots \mu_s y_s| = \Big|\overline{\lambda} \sum_i x_i + \overline{\mu} \sum_j y_j\Big| = 
+\]
+\[
+    = \dfrac{|\overline{\lambda} - \overline{\mu}|}{2} \Big(\sum_i x_i + \sum_j |y_j|\Big) = |\overline{\lambda} - \overline{\mu}| \sum_i x_i,
+\]  
+where
+\[
+    \overline{\lambda} = \dfrac{\sum \lambda_i x_i}{\sum x_i}, \quad \overline{\mu} = \dfrac{\sum \mu_j y_j}{\sum y_j} = \dfrac{\sum \mu_j |y_j|}{\sum |y_j|};
+\]
+i.e., they correspond to the weighted arithmetic mean. 
+
+By definition of the \texttt{input\_domain}, the entries of $v$ and $w$ are contained within the interval \texttt{[L, U]}, and hence $\texttt{U} \geq \max\{\lambda_i, \mu_j\}$ and $\texttt{L} \leq \min\{\lambda_i, \mu_j\}$. Then,
+\[
+    \dfrac{\texttt{U-L}}{2} \Big(\sum_i x_i + \sum_j |y_j|\Big) = \dfrac{\texttt{U-L}}{2} \cdot 2 \sum_i x_i = (\texttt{U-L}) \sum_i x_i.
+\]
+Since $|\overline{\lambda} - \overline{\mu}| \leq \texttt{U-L}$, it follows that
+\[
+    d_{Abs}(\function(v), \function(w)) = \dfrac{\overline{\lambda}-\overline{\mu}}{2}\Big(\sum_i x_i + \sum_j |y_j|\Big) = \dfrac{\overline{\lambda}-\overline{\mu}}{2}\Big(\sum_i x_i - \sum_j y_j\Big) =
+\]
+\[
+    \dfrac{\overline{\lambda}-\overline{\mu}}{2} \Big(\sum_i |h_v(u_i) - h_w(u_i)| \Big) = \dfrac{\overline{\lambda}-\overline{\mu}}{2} \cdot d_{Sym}(v, w) \leq \dfrac{\texttt{U-L}}{2} \cdot d_{Sym}(v, w).
+\]
+Hence,
+\[
+    d_{Abs}(\function(v), \function(w)) \leq \dfrac{\texttt{U-L}}{2} \cdot d_{Sym}(v, w),
 \]
 as we wanted to show.
-\end{proof}
 
 \end{document}
