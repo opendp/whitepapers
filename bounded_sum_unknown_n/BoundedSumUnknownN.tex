@@ -73,7 +73,7 @@
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{\texttt{d\_in}}
 \newcommand{\dout}{\texttt{d\_out}}
-\newcommand{\Relation}{\texttt{Relation}}
+\newcommand{\Relation}{\texttt{relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
 \newcommand{\U}{\texttt{U}}
@@ -103,17 +103,7 @@
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing bounded sum unknown $n$. This is defined in lines 53-68 of the file \texttt{sum.rs} in the Git repository\footnote{As of July 1, 2021.} (\url{https://github.com/opendp/opendp/blob/b936c74223b4e319698fa51837b5f8f40f3126d3/rust/opendp/src/trans/sum.rs#L53-L68}).
-
-\begin{figure}[ht]
-    \includegraphics[width=14cm]{sum2.png}
-    \centering
-    \label{fig:code}
-\end{figure}
-
-\newpage
-
-Update: after conversations with Mike about the possible overflow problems in Bounded Sum, the Rust code has been updated. The new version can be found at \url{https://github.com/opendp/opendp/blob/53e8d67b8dde4425930fb8bc397c126cd4f18370/rust/opendp/src/trans/sum.rs#L18-L33}. However, we also keep the code snippet above because this change is still a pull request and is still not part of the OpenDP library.\footnote{As of July 20.} The proof below now refers to this most updated version.
+The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing bounded sum unknown $n$. This is defined in lines 18--33 of the file \texttt{sum.rs} in the Git repository\footnote{As of July 20, 2021.} ({\url{https://github.com/opendp/opendp/blob/53e8d67b8dde4425930fb8bc397c126cd4f18370/rust/opendp/src/trans/sum.rs#L18-L33}}).
 
 \begin{figure}[ht]
     \includegraphics[width=15cm]{bounded_sum_3.png}
@@ -131,7 +121,7 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Type \texttt{T} must implement \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd},\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented. Then, \texttt{TotalOrd} will be redundant, since the trait \texttt{TotalOrd} is part of the trait \texttt{DistanceConstant}.} \texttt{Abs}, \texttt{Sub(Output=T)}, \texttt{SaturatingAdd}, and \texttt{Zero}.
-        \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. \questionc{Same question that Connor asked in \texttt{make\_count} -- this is not needed for the proof.}
+        \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. \questionc{Same point that Connor raised in \texttt{make\_count} -- this is not needed for the proof.}
 \end{itemize}
 \end{itemize}
 
@@ -147,7 +137,7 @@ def MakeBoundedSum(L: T, U: T):
     input_metric = SymmetricDistance()
     output_metric = AbsoluteDistance(T)
     
-    def Relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
+    def relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
         return d_out >= inf_cast(d_in, T) * max(abs(U), abs(L))
     
     def function(data: Vec[T]) -> T: |\label{line:fn}|
@@ -168,7 +158,7 @@ def MakeBoundedSum(L: T, U: T):
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{Relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
@@ -203,7 +193,6 @@ def MakeBoundedSum(L: T, U: T):
         d_{Abs}(\function(v), \function(w)) \leq \dout,
     \]
     as we want to see. 
-\end{proof}
 
 Let $u$ denote the vector formed by all the elements of $v$ and $w$ \textit{without multiplicities} (i.e., $u$ contains exactly once each of the elements in $\MultiSet(v) \cup \MultiSet(w)$, in any order). Let $u_i$ denote the $i$-th element of $u$, and similarly for $v$ and $w$, and let $m$ denote the length of $u$.  
 Then, by definition,
@@ -216,7 +205,7 @@ Then, by definition,
 \[
    = \Big|\sum_i u_i \cdot h_v(u_i) - \sum_i u_i \cdot h_w(u_i)\Big| = \Big|\sum_i u_i \cdot (h_v(u_i) - h_w(u_i))\Big|.
 \]
-Note that we have the inequality $|\function(v) - \function(w)| \leq |\sum_i v_i - \sum_i w_i|$ above (instead of an equality) due to the definition of \texttt{saturating\_add}. The equality case holds whenever $\sum_i v_i \in \texttt{[get\_min\_value(T), get\_max\_value(T)]}$ and $\sum_i w_i \in \texttt{[get\_min\_value(T),}$  $\texttt{get\_max\_value(T)]}$. In any of the possible cases where $\sum_i v_i > \texttt{get\_max\_value(T)}$ or $\sum_i v_i < \texttt{get\_min\_value(T)}$ and $\sum_i w_i > \texttt{get\_max\_value(T)}$ or $\sum_i w_i < \texttt{get\_min\_value(T)}$, the difference $|\sum_i v_i - \sum_i w_i|$ will always upper bound the value $|\function(v) - \function(w)|$, and hence it is sufficient to carry our proof by only considering the quantity $|\sum_i v_i - \sum_i w_i|$.
+We remark that we have the inequality $|\function(v) - \function(w)| \leq |\sum_i v_i - \sum_i w_i|$ above (instead of an equality) due to the definition of \texttt{saturating\_add}. The equality case holds whenever $\sum_i v_i \in \texttt{[get\_min\_value(T), get\_max\_value(T)]}$ and $\sum_i w_i \in \texttt{[get\_min\_value(T),}$  $\texttt{get\_max\_value(T)]}$. In any of the possible cases where $\sum_i v_i > \texttt{get\_max\_value(T)}$ or $\sum_i v_i < \texttt{get\_min\_value(T)}$ and $\sum_i w_i > \texttt{get\_max\_value(T)}$ or $\sum_i w_i < \texttt{get\_min\_value(T)}$, the difference $|\sum_i v_i - \sum_i w_i|$ will always upper bound the value $|\function(v) - \function(w)|$, and hence it is sufficient to carry our proof by only considering the quantity $|\sum_i v_i - \sum_i w_i|$.
 
 \silvia{Might be easier to just state this in terms of absolute clamp and refer to that transformation proof.}
 
@@ -239,6 +228,7 @@ Lastly, since by assumption $v$ and $w$ are $\din$-close, by the defined $\Relat
     \leq \max{(|\texttt{U}|, |\texttt{L}|)} \cdot \din \leq \dout,
 \]
 as we wanted to show.
+\end{proof}
 
 \silvia{Flag: need to account for rounding errors in the stability relation given the non-closure of float addition, as discussed on the week of August 2nd. We are figuring this out.}
 
