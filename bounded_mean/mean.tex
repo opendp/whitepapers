@@ -73,7 +73,7 @@
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{\texttt{d\_in}}
 \newcommand{\dout}{\texttt{d\_out}}
-\newcommand{\Relation}{\texttt{Relation}}
+\newcommand{\Relation}{\texttt{relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
 \newcommand{\U}{\texttt{U}}
@@ -146,13 +146,13 @@ def MakeBoundedMean(L: T, U: T, n: usize):
     if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: 
         raise Exception('Potential overflow') |\label{line:max}|
     
-    def Relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
+    def relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
         return d_out >= inf_cast(d_in, T)*(U-L) / n_ / exact_int_cast(2, T)
     
     def function(data: Vec[T]) -> T: |\label{line:fn}|
         return (data.iter().sum()) / n_ |\label{line:sum}|
     
-    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
 
 \section{Proof}
