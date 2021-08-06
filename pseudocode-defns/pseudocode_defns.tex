@@ -18,9 +18,9 @@
 \textheight22.7cm 
 \textwidth15cm \topmargin-0.5cm
 
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}
-\newtheorem{lemma}{Lemma}
+\newtheorem{lemma}{Lemma}[section]
 \newtheorem{proposition}{Proposition}
 \newtheorem*{theorem-non}{Theorem}
 
@@ -71,6 +71,7 @@
 \lstset{style=mystyle}
 
 \newcommand{\MultiSets}{\mathrm{MultiSets}}
+\newcommand{\MultiSet}{\mathrm{MultiSets}}
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{d_{in}}
 \newcommand{\dout}{d_{out}}
@@ -104,7 +105,6 @@
 \newcommand{\domainType}[1]{This domain has type \texttt{#1}.}
 
 
-
 \title{List of definitions used in the pseudocode}
 \author{S\'ilvia Casacuberta, Grace Tian, and Connor Wagaman}
 \date{June--July 2021}
@@ -121,8 +121,29 @@ We also recommend linking to the Rust Standard Library when the term is defined 
 
 \tableofcontents
 
+\section*{List of terms that have not yet been added}
+\begin{itemize}
+    \item The compatibility pairing and subdomains. Compatibility inheritance for subdomains and proof for subdomain traits. But this is awaiting the specific final implementation.
+    \item Clarify why we specify vectors for \texttt{SizedDomain}
+    \item Add definition of a valid measurement
+    \item Double-check newly added definitions, and trait vs function (e.g., \texttt{SaturatingAdd} and \texttt{saturating\_add})
+    \item Incorporate corrections from Prof. Vadhan on GitHub
+    \item Add type trait \texttt{Laplace Domain}, and the other ones from base Laplace: \texttt{D::Atom}, \texttt{SampleLaplace}, \texttt{Float}, and \texttt{InfCast(D::Atom)}.
+    \item Add function \texttt{is\_sign\_negative()} from Laplace
+    \item Add function \texttt{.recip()} from Laplace
+    \item Add function \texttt{sample\_laplace} (idealized, for now)
+    \item Add \texttt{IntDistance}, although Mike said to keep using \texttt{u32} in the pseudocode type signing for now.
+    \item Definition of the Rust iterator.
+    \item Do we need \texttt{fold}? Maybe always use loops
+\end{itemize}
+
 \section{Types}
 % any types should be listed here
+
+\begin{note}[A note on \texttt{()} vs. \texttt{[]}] Parentheses, \texttt{()}, are used to create an instance of a domain. Square brackets, \texttt{[]}, are used to describe the type of a domain.
+
+For example, \texttt{AllDomain(i8)} is the domain of all values of type \texttt{i8}. However, the type of \texttt{AllDomain(i8)} -- the domain itself, not the elements of the domain -- is \texttt{AllDomain[i8]}; note the square brackets. This typing style is inspired by the notation used in Python; see \url{https://docs.python.org/3/library/typing.html}.
+\end{note}
 
 \begin{definition}[\texttt{bool}]
     The type \texttt{bool} represents a value which can only be either \texttt{True} or \texttt{False}. If a \texttt{bool} is \texttt{cast}ed to an integer, \texttt{True} will be \texttt{1} and \texttt{False} will be \texttt{0}.
@@ -148,6 +169,12 @@ For example, \texttt{AllDomain(T)::Carrier} is $\T$.
 \texttt{IntDistance} is equivalent to \texttt{u32}.
 \end{definition}
 
+\begin{definition}[\texttt{::NonNull}]
+\texttt{SomeDomain::NonNull} is  \grace{TODO} in \texttt{SomeDomain}, where \texttt{SomeDomain} is a domain. 
+
+For example, \grace{TODO}.
+\end{definition}
+
 \begin{definition}[\texttt{u32}]$\sfi$
     \texttt{u32} is the Rust 32-bit unsigned integer type. If $v$ is a value of type \texttt{u32}, then we know that $v\in \{0,1,2,\ldots, 2^{32}-1\}$. \inRust{u32}{https://doc.rust-lang.org/std/primitive.u32.html}
 \end{definition}
@@ -161,8 +188,8 @@ For example, \texttt{AllDomain(T)::Carrier} is $\T$.
     \inRust{usize}{https://doc.rust-lang.org/std/primitive.usize.html}
 \end{definition}
 
-\begin{definition}[\texttt{Vec(T)}]$\sfi$
-    The Rust type \texttt{Vec(T)} consists of ordered lists of type \texttt{T}. For example, if \texttt{T = bool}, then values of type \texttt{Vec(T)} include $\texttt{[], [0], [1], [0, 0],} \ldots$. \inRust{Vec<T>}{https://doc.rust-lang.org/std/vec/struct.Vec.html}
+\begin{definition}[\texttt{Vec[T]}]$\sfi$
+    The Rust type \texttt{Vec[T]} consists of ordered lists of type \texttt{T}. For example, if \texttt{T = bool}, then values of type \texttt{Vec[T]} include $\texttt{[], [0], [1], [0, 0],} \ldots$. \inRust{Vec<T>}{https://doc.rust-lang.org/std/vec/struct.Vec.html}
 \end{definition}
 
 \horizline
@@ -187,20 +214,31 @@ $\sfi$ A \emph{data domain} is a representation of the set of values on which a 
 
 For example, \texttt{AllDomain(u32)} is the domain of all values of type \texttt{u32}.
 
-\begin{definition}[\texttt{IntervalDomain}] \sfi
-\texttt{IntervalDomain(L:T, U:T)} is the domain of all values \texttt{v} of type \texttt{T} such that \texttt{L <= v} and \texttt{v <= U}, for a type \texttt{T} that has a total ordering (\texttt{T} has trait \texttt{TotalOrd}) and for values \texttt{L <= U} of type \texttt{T}. \domainType{IntervalDomain[T]}
-    
-Note that, because both \texttt{L} and \texttt{U} are of type \texttt{T}, there is no need to explicitly pass \texttt{T}; the type \texttt{T} can be inferred. \texttt{IntervalDomain} is defined on any type that implements the trait \texttt{TotalOrd}.\footnote{As of June 28, the OpenDP library requires the weaker condition of partial ordering (implements \texttt{PartialOrd}) instead.}
+
+\begin{definition}[\texttt{ImputableDomain}] 
+Any domain for which the \texttt{ImputableDomain} trait is implemented for it, has 
+\begin{itemize}
+    \item an associated type \texttt{NonNull}. \texttt{VectorDomain::NonNull} is the datum type after imputation. 
+    \item an imputation function \texttt{impute\_constant} that replaces a null value with a constant or passes a non-null value through
+    \item  a function \texttt{is\_null} to check if a value is null
+    \item a function \texttt{null} to construct an instance of the domain
+\end{itemize}
+
 \end{definition}
 
-For example, \texttt{IntervalDomain(1:u32, 17:u32)} corresponds to a domain that contains all the \texttt{u32} values \texttt{v} such that \texttt{1 <= v} and \texttt{v <= 17}; it has type \texttt{IntervalDomain[u32]}.
+\begin{definition}[\texttt{IntervalDomain}] \sfi For any type \texttt{T} with trait \texttt{TotalOrd},\footnote{As of June 28, the OpenDP library requires the weaker condition of partial ordering (implements \texttt{PartialOrd}) instead.} \texttt{IntervalDomain(L:T, U:T)} is the domain of all values \texttt{v} of type \texttt{T} such that \texttt{L <= v} and \texttt{v <= U}, for a type \texttt{T} that has a total ordering (\texttt{T} has trait \texttt{TotalOrd}) and for values \texttt{L <= U} of type \texttt{T}. \domainType{IntervalDomain[T]}
+\end{definition}
+
+An important remark is that the Rust implementation of \texttt{IntervalDomain} checks that \texttt{L} $\leq$ \texttt{U}, and returns an error if \texttt{L} $\geq$ \texttt{U}. Therefore, any transformation or measurement that uses \texttt{IntervalDomain} does not need to re-check this constraint and raise a possible exception for it. 
+
+Note that, because both \texttt{L} and \texttt{U} are of type \texttt{T}, there is no need to explicitly pass \texttt{T}; the type \texttt{T} can be inferred. \texttt{IntervalDomain} is defined on any type that implements the trait \texttt{TotalOrd}. For example, \texttt{IntervalDomain(1:u32, 17:u32)} corresponds to a domain that contains all the \texttt{u32} values \texttt{v} such that \texttt{1 <= v} and \texttt{v <= 17}; it has type \texttt{IntervalDomain[u32]}.
 
 \begin{definition}[\texttt{InherentNullDomain}] 
     \texttt{InherentNullDomain(inner\_domain:D)} is the domain of all values of data domain \texttt{inner\_domain} and \texttt{null} values. \domainType{InherentNullDomain[D]}
 \end{definition}
 
 \begin{definition}[\texttt{SizedDomain}] $\sfi$
-    \texttt{SizedDomain(inner\_domain:D, n:usize)} is the domain of all vectors of length \texttt{n} drawn from domain \texttt{inner\_domain}. \domainType{SizedDomain[D]}
+    \texttt{SizedDomain(inner\_domain:D, n:usize)} is the domain of all vectors of length \texttt{n} drawn from domain \texttt{inner\_domain}. \domainType{SizedDomain[D]} \silvia{As discussed on July 19, this is not only for vectors}
 \end{definition}
 
 For example, \texttt{SizedDomain(VectorDomain(AllDomain(u32)), n)} is the domain of all vectors of length $\texttt{n}$ with elements of type \texttt{u32}.
@@ -210,16 +248,36 @@ For example, \texttt{SizedDomain(VectorDomain(AllDomain(u32)), n)} is the domain
 \domainType{VectorDomain[D]}
 \end{definition}
 
+\subsection{Subdomains}
+
 \horizline
 
 \subsection{Notes, todos, questions}
 \todonei{Add clampable domain (\texttt{ClampableDomain}) -- waiting until \texttt{TotalOrd} is fully implemented in the OpenDP library.}
 
+\todonei{As of July 20, OpenDP plans to include subdomains (see the Architecture meeting notes for 20/7). We have to include them and prove that they are indeed subdomains. Then in the metric definition it is enough to list the most general domain, since the domain-metric compatibility in inherited. We will add the necessary information here after Mike and Andy have finished the implementation details.}
+
+\begin{theorem}[Domain-metric compatibility inheritance.]
+    Given a domain \texttt{D}, for any subdomain \texttt{S} $\subseteq$ \texttt{D}, if \texttt{D} is compatible with metric \texttt{M} then \texttt{S} is compatible with metric \texttt{M}.
+\end{theorem}
+
+\silvia{Since it is a theorem, should it be moved to the proof defs doc?}
+
+\todo{Need to add definition for what does it mean to be compatible.}
+
 \section{Traits}
 % any traits should be defined here
 
+\begin{definition}[\texttt{Abs}]
+    A type \texttt{T} has trait \texttt{Abs} if and only if the absolute value of a value of type \texttt{T} can be taken.
+\end{definition}
+
 \begin{definition}[\texttt{Bounded}]
     A type $\T$ has trait \texttt{Bounded} $\iffText$ $\T$ has some upper bound and some lower bound (some smallest possible value and some largest possible value).
+\end{definition}
+
+\begin{definition}[\texttt{CheckedMul}]
+    A type \texttt{T} has trait \texttt{CheckedMul} if it performs multiplication that returns ``None" if overflowing.
 \end{definition}
 
 \begin{definition}[\texttt{DistanceConstant}]
@@ -240,22 +298,29 @@ A type \texttt{T} has trait \texttt{Domain} $\iffText$ it can represent a set of
 \begin{definition}[\texttt{ExactIntCast}]
     A type \texttt{TO} has trait \texttt{ExactIntCast(TI)} $\iffText$:
     \begin{enumerate}
-    \item It has trait \texttt{MaxConsecutiveInt}
+    \item It has trait \texttt{MaxConsecutiveInt}.
     \item Every value of type \texttt{TI} can be \texttt{exact\_int\_cast}ed exactly to a value of type \texttt{TO}, as long as the original value of type \texttt{TI} is no smaller than \texttt{get\_min\_consecutive\_int(TO)} and no larger than \texttt{get\_max\_consecutive\_int(TO)}.
     \end{enumerate}
     
     A cast error is returned when the value being \texttt{exact\_int\_cast}ed is greater than \texttt{get\_max\_consecutive\_int(TO)} or less than \texttt{get\_min\_consecutive\_int(TO)}.
 \end{definition}
 
+\begin{definition}[\texttt{Float}]
+    Generic trait for floating point numbers. 
+\end{definition}
+
+\todo{The Float trait adds \texttt{Div<Self, Output = Self>}}. In general, add the dependencies between traits.
+
 \begin{definition}[\texttt{InfCast}]
 A type \texttt{TO} has trait \texttt{InfCast(TI)} $\iffText$ every cast from a value of type \texttt{TI} to type \texttt{TO} will result in a value of type \texttt{TO} that is at least as big as the value of type \texttt{TI}.
 \end{definition}
 
 \begin{definition}[\texttt{InherentNull}]
-A type \texttt{T} has trait $\iffText$ it can hold some value \texttt{null}.
+A type \texttt{T} has trait \texttt{InherentNull} $\iffText$ type \texttt{T} can hold some value \texttt{null}.
 
 As of July 16, 2021, only \texttt{f32} and \texttt{f64} have the trait \texttt{InherentNull}.
 \end{definition}
+
 
 \begin{definition}[\texttt{MaxConsecutiveInt}]
 A type $\T$ has trait \texttt{MaxConsecutiveInt} if and only if there is some maximum nonnegative integer \texttt{i} such that all integers from 0 up to \texttt{i} (inclusive) can be expressed as a value of type $\T$; but such that the next integer that can be expressed by $\T$ is not $\texttt{i}+1$.
@@ -269,6 +334,14 @@ A type \texttt{T} has trait \texttt{Metric} $\iffText$ it can represent a metric
     A type $\T$ has trait \texttt{One} $\iffText$ $\T$ has some multiplicative identity element.
 \end{definition}
 
+\begin{definition}[\texttt{OptionNull}]
+A type \texttt{Option<T>} has trait \texttt{OptionNull} $\iffText$ \texttt{null} can be represented as \texttt{Option<T>} \grace{Check this because not sure if it makes sense.}
+\end{definition}
+
+
+\begin{definition}[\texttt{PartialEq}]
+    A type $\T$ has trait \texttt{PartialEq} $\iffText$ $\T$ has some \grace{TODO}
+\end{definition}
 
 \begin{definition}[\texttt{PartialOrd}]\label{def:partial}
 A type \texttt{T} has trait \texttt{PartialOrd} if for all elements $a, b, c$ of type \texttt{T}, the following properties are satisfied:
@@ -299,8 +372,6 @@ A type $\T$ has trait \texttt{Zero} $\iffText$ $\T$ has some additive identity e
 \end{definition}
 
 \subsection{Math-related definitions}
-\connor{Since these should probably have similar definitions, they are here for now (i.e. not alphabetized) since this is the first version, and it will be easier to make changes if they're all grouped together. They will be brought into the alphabetical list later.}
-
 \begin{definition}[\texttt{Add(Output=T)}]
     A type \texttt{T} has trait \texttt{Add(Output=T)} $\iffText$ addition can be performed between elements of type \texttt{T}, with the result of the addition also being of type \texttt{T}.
 \end{definition}
@@ -317,10 +388,15 @@ A type $\T$ has trait \texttt{Zero} $\iffText$ $\T$ has some additive identity e
     A type \texttt{T} has trait \texttt{Sub(Output=T)} $\iffText$ subtraction can be performed between elements of type \texttt{T}, with the result of the subtraction also being of type \texttt{T}.
 \end{definition}
 
+\begin{definition}[\texttt{Sum(Output=T)}]
+    A type \texttt{T} has trait \texttt{Sum(Output=T)} if and only if such type can be created by summing up an iterator. This trait is used to implement the \texttt{sum} method on iterators. Types which implement the trait can be generated by the \texttt{sum()} method. 
+\end{definition}
+
 \subsection{Traits that need not appear in the preconditions}
 \begin{itemize}
-    \item \texttt{\textquotesingle static}. Notes: \texttt{\textquotesingle static} is not a type; it is a lifetime name (this is a Rust definition)
+    \item \texttt{\textquotesingle static}. Notes: \texttt{\textquotesingle static} is not a type; it is a lifetime name (this is a Rust definition).
     \item \texttt{Clone}
+    \item \texttt{Copy}
 \end{itemize}
 
 \horizline
@@ -330,6 +406,10 @@ A type $\T$ has trait \texttt{Zero} $\iffText$ $\T$ has some additive identity e
 \section{Functions}
 
 \subsection{Functions in the pseudocode language}
+
+\begin{definition}[\texttt{abs}]
+    Given an element \texttt{var} of type \texttt{T}, where \texttt{T} must have trait \texttt{Abs}, the function \texttt{abs} reuturns the absolute value of \texttt{var}.
+\end{definition}
 
 \begin{definition}[\texttt{assert}] 
     The function \texttt{assert} is followed by an expression. If \texttt{some\_expression} evaluates to \texttt{False}, then \texttt{assert some\_expression} results in an error that prevents the code from proceeding further. \inPython{\texttt{assert}}{https://docs.python.org/3/reference/simple_stmts.html\#the-assert-statement}
@@ -344,6 +424,11 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
 \begin{definition}[\texttt{cast}]
     \texttt{cast(val:TI, TO)} converts \texttt{val} of type \texttt{TI} to the corresponding \texttt{val} of type \texttt{TO}, and returns \texttt{val} of type \texttt{TO}. Returns an error if the conversion is unsuccessful.
 \end{definition}
+
+\begin{definition}[\texttt{checked\_mul}]
+     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Mul(Output=T)}, \texttt{checked.mul(var1, var2)} returns \texttt{var1*var2} if the result does not overflow, and else returns ``None".
+\end{definition}
+
 
 \begin{definition}[\texttt{exact\_int\_cast}]
     This function only works for types \texttt{TO} that have trait \texttt{ExactIntCast(TI)}. For any given \texttt{val} such that \texttt{val} is between \texttt{get\_min\_consecutive\_int(TO)} and \texttt{get\_max\_consecutive\_int(TO)}, then \texttt{exact\_int\_cast(val:TI,TO)} returns the an integer value of type \texttt{TO} equal to the integer value held by  \texttt{val} (which was of type \texttt{TI}); otherwise, a cast error is returned.
@@ -395,29 +480,61 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
     The function \texttt{is\_instance(var,T)} returns $\True$ if and only if the variable \texttt{var} is of type \texttt{T}.
 \end{definition}
 
+
+
+\begin{definition}[\texttt{is\_none}]
+    The function \texttt{var.is\_none} returns \texttt{True} if and only if \texttt{var} which is of \texttt{float} is equal to ``None".
+\end{definition}
+
+\begin{definition}[\texttt{is\_null}]
+    The function \texttt{var.is\_null} returns \texttt{True} if and only if \texttt{var} which is of \texttt{Option<T>} is not equal to ``Null".
+\end{definition}
+
+\begin{remark}[Imputable Domain]
+To check for nullity, we use \texttt{v.is\_null()} if v is a float, or \texttt{v.is\_none()} if v is an \texttt{Option<T>}. To abstract these functions, we define the \texttt{ImputableDomain} trait to capture both notions of nullity.
+\end{remark}
+
 \begin{definition}[\texttt{len}]
     The function \texttt{len(vector\_name)} returns the number of elements in \texttt{vector} \texttt{vector\_name}. Output is of type \texttt{usize}, so the return value $v$ on 32-bit machines is $v\in \{0,1,2,\ldots,2^{32} - 1\}$; likewise, the return value on 64-bit machines is $v\in \{0,1,2,\ldots,2^{64} - 1\}$. \inRust{std::vec::Vec::len}{https://doc.rust-lang.org/std/vec/struct.Vec.html\#method.len}
 \end{definition}
 
 \emph{Note: we do not call it \texttt{length} to avoid notational clashes with, for example, the Bounded Sum code.}
 
+\begin{definition}[\texttt{map}]
+    A \texttt{map} applies a given function to all the items in an iterable without using an explicit for loop. Hence, \texttt{map(f, iter)} is an iterator that maps the values of \texttt{iter} with \texttt{f}. \inRust{https://doc.rust-lang.org/std/iter/struct.Map.html}.
+\end{definition}
+
 \begin{definition}[\texttt{max}]
-    The function \texttt{max(var1, var2)} compares \texttt{var1} and \texttt{var2}, and returns the greater of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var2}. \inRust{std::cmp::max}{https://doc.rust-lang.org/std/cmp/fn.max.html}
+    The function \texttt{max(var1, var2)} compares \texttt{var1} and \texttt{var2}, and returns the greater of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var2}. The return type of \texttt{map} is also an iterator. \inRust{std::cmp::max}{https://doc.rust-lang.org/std/cmp/fn.max.html}
 \end{definition}
 
 \begin{definition}[\texttt{min}]
     The function \texttt{min(var1:T, var2:T)} compares \texttt{var1} and \texttt{var2}, and returns the lesser of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var1}. \inRust{std::cmp::min}{https://doc.rust-lang.org/std/cmp/fn.min.html}
 \end{definition}
 
+\silvia{Max and min definitions should be consistent (type signing). Why are we not requiring \texttt{T} to have total order?}
+
+\begin{definition}[\texttt{saturating\_add}]
+    Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Add(Output=T)}, the function  \texttt{saturating\_add(var1, var2)} returns \texttt{var1+var2} whenever \texttt{var1+var2} $\in$ \texttt{[get\_min\_value(T), get\_max\_value(T)]}. If \texttt{var1+var2} $<$ \texttt{get\_min\_value(T)}, then \texttt{saturating\_add(var1, var2)} $=$ \texttt{get\_min\_value(T)}. Similarly, in the case where \texttt{var1+var2} $>$ \texttt{get\_max\_value(T)}, then \texttt{saturating\_add(var1, var2)} $=$ \texttt{get\_max\_value(T)}. \inRust{std::intrinsics::saturating\_add}{https://doc.rust-lang.org/std/intrinsics/fn.saturating_add.html}
+\end{definition}
+% i.e., this is clamping
+
+\begin{definition}[\texttt{sum}]
+    The \texttt{sum} function adds the items of an iterable and returns their sum.
+\end{definition}
+
 \horizline
 
 \subsection{Notes, todos, questions}
 
-\begin{itemize}
-    \item \todo{Add \texttt{data.iter().sum()}}
-    \item \todo{Add \texttt{sum.saturating\_add()}}
-    \item \todo{Add \texttt{fold}}
-\end{itemize}
+
+\section{Data structures}
+
+\begin{definition}[\texttt{list}]
+    A \texttt{list} is a data structure which is a changeable ordered sequence of elements.
+\end{definition}
+
+Importantly, we remark that in some occasions in our Python-like pseudocodes we will write \texttt{list} as an equivalent for the Rust \texttt{Vec} in order to maintain a Python-like notation. For this reason, such a \texttt{list} will have type \texttt{Vec(T)} and be considered an element of \texttt{VectorDomain}. We will allow the use of the Rust-like term \texttt{Vec} when type signing the functions in the pseudocode and proving the corresponding domain properties in the proof.
 
 \section{Classes}
 
@@ -426,7 +543,7 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
     
     \questionr{Which pseudocode style is preferred for this definition? With preconditions (section \ref{sec:pseudocode-w-preconditions}) or without preconditions (section \ref{sec:pseudocode-wout-preconditions})?}
     
-\subsubsection{Pseudocode with preconditions}
+\subsection{Pseudocode with preconditions}
 \label{sec:pseudocode-w-preconditions}
 
 \begin{itemize}
@@ -453,7 +570,7 @@ class Transformation:
         self.stability_relation = stability_relation
 \end{lstlisting}
     
-\subsubsection{Pseudocode without preconditions}
+\subsection{Pseudocode without preconditions}
 \label{sec:pseudocode-wout-preconditions}
 
 \connor{Mike helped a lot with this definition, so I'm hopeful it's fully correct, or at least very close.}
@@ -480,7 +597,7 @@ class Transformation:
         self.stability_relation = stability_relation
 \end{lstlisting}
     
-    \inOpenDPRust{Transformation}{https://github.com/opendp/opendp/blob/35dbdc73d7d74e049f5101a704d4e036bed365e8/rust/opendp/src/core.rs\#L369-L376}
+    \inOpenDPRust{Transformation}{https://github.com/opendp/opendp/blob/35dbdc73d7d74e049f5101a704d4e036bed365e8/rust/opendp/src/core.rs\#L369-L376} When we refer to a \textit{valid transformation} in the proofs, this is the precise definition.
 \end{definition}
 
 Therefore, there is no need to include the following code snippet in all of the pseudocodes:
@@ -494,8 +611,10 @@ class Transformation:
     stability_relation 
 \end{lstlisting}
 
-\section{Metrics}
+\todo{Add the equivalent for Measurements. (Very similar; just change names)}
 
+\section{Metrics}
+\subsection{Dataset metrics}
 Metrics are used to measure the distances between data. Metrics have a \emph{domain} on which the metric can measure distance, and an \emph{associated type} that determines the type used to represent the distance between datasets.
 
 \textbf{Example:} \texttt{SymmetricDistance} has a domain of \texttt{VectorDomain(AllDomain(T))}, which means that \texttt{SymmetricDistance} can be used to measure the distance between any objects that are vectors of elements of type \texttt{T}. \texttt{SymmetricDistance} has an associated type of \texttt{u32}, which means that a \texttt{u32} value is used to report the distance.
@@ -503,23 +622,50 @@ Metrics are used to measure the distances between data. Metrics have a \emph{dom
 \begin{definition}[\texttt{AbsoluteDistance(T)}]
 \metricDefn{absolute distance}
 \begin{itemize}
-    \item \textbf{Domain:} \texttt{AllDomain(T)}, where \texttt{T} has the trait \texttt{Sub(Output=T)}
-    \item \textbf{Associated type:} \texttt{T}
+    \item \textbf{Domain:} \texttt{AllDomain(T)}, where \texttt{T} has the trait \texttt{Sub(Output=T)}.
+    \item \textbf{Associated type:} \texttt{Q}.
+    \item \textbf{$d$-close:} For any two elements $n, m$ in \texttt{AllDomain(T)}, where \texttt{T} denotes an arbitrary type with trait \texttt{Sub(Output=T)}, and $d$ of generic type \texttt{Q}, we say that $n, m$ are $d$-close under the absolute distance metric (abbreviated as $d_{Abs}$) whenever
+    \[
+        d_{Abs}(n, m) = |n-m| \leq d.
+    \]
 \end{itemize}
 \end{definition}
 
 \begin{definition}[\texttt{SymmetricDistance}]
-\metricDefn{symmetric distance}
+\metricDefn{symmetric distance} 
 \begin{itemize}
-    \item \textbf{Domains:} \texttt{VectorDomain(D)} where \texttt{D} is any domain
-    \item \textbf{Associated type:} \texttt{u32}
+    \item \textbf{Domains:} \texttt{VectorDomain(inner\_domain)} where \texttt{inner\_domain} is any domain. \silvia{Said on 19/7: for now, list also \texttt{SizedDomain(VectorDomain(inner\_domain))}}
+    \item \textbf{Associated type:} \texttt{u32}.
+    \item \textbf{$d$-close:} For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and any $d$ of type \texttt{u32}, we say that $u, v$ are $d$-close under the symmetric distance metric (abbreviated as $d_{Sym}$) whenever 
+    \[
+        d_{Sym}(u, v) = |\MultiSet(u) \Delta \MultiSet(v)| \leq d.
+    \]
 \end{itemize}
 \end{definition}
 
 \emph{Note: the associated type of \texttt{SymmetricDistance} is hard-coded as \texttt{u32}, so when declaring that the metric being used is \texttt{SymmetricDistance}, we only need to write \texttt{metric = SymmetricDistance()}; by contrast, we need to write \texttt{AbsoluteDistance(T)} where \texttt{T} is the type on which we are taking the absolute distance since the associated type for \texttt{AbsoluteDistance} is not hard-coded.}
 
+\todo{Change to \texttt{IntDistance}.}
+
+\subsection{Sensitivity metrics}
+
+\begin{definition}[\texttt{L1Distance}]
+
+\end{definition}
+
+\begin{definition}[\texttt{L2Distance}]
+
+\end{definition}
+
 \horizline
 
 \subsection{Notes, todos, questions}
+\questionc{Add symmetric difference?}
+
+\connor{I don't think we need to. It is not a \texttt{$\backslash$texttt\{...\}} term.}
+
+\todo{Need to learn how to cross-reference TeX files. After Prof. Vadhan's comment on 19/7, we should think of a systematic way to do dependency tracking.}
+
+\todo{Add compatibility pairing as described in the July 20 architecture meeting.}
 
 \end{document}
