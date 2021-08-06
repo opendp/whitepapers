@@ -148,10 +148,8 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     def function(data: Vec[T]) -> T: |\label{line:fn}|
         return sum(data) |\label{line:sum}|
     
-    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = Relation)
+    return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
-
-\silvia{Flag: maybe change the type of $\din$ to \texttt{IntDistance} given the recent update of the library.}
 
 \newpage
 
