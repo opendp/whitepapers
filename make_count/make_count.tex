@@ -104,7 +104,7 @@ August\or September\or October\or November\or December\fi
 
 \theoremstyle{definition}
 \newtheorem{remark}{Remark}
-\newtheorem{definition}{Definition}[section]
+\newtheorem{definition}[theorem]{Definition}
 \newtheorem{observation}{Observation}
 \newtheorem{note}{Note}
 \newtheorem{hope}{Hope}
@@ -175,13 +175,19 @@ Here, we use preconditions to check for traits, and to specify the domains and m
     \begin{itemize}
         \item \texttt{TO} has traits \texttt{One}, \texttt{ExactIntCast(usize)}, and \texttt{DistanceConstant(IntDistance)}.
         
-        Examples: \texttt{u32} and \texttt{i64} have these traits. On the other hand, \texttt{f32} does not because there are some values $\texttt{v}$ of type $\texttt{usize}$ that do not have an exact 32-bit floating point representation.
+        Examples: \texttt{u32} and \texttt{i64} have these traits because they have (1) a multiplicative identity element, (2) every value of type \texttt{usize} that falls within the minimum and maximum consecutive integers of type \texttt{u32} has an exact representation of type \texttt{u32} (the same applies for \texttt{i64}), and (3) multiplication and division apply to types \texttt{u32} and \texttt{i64}, values of type \texttt{u32} and \texttt{i64} have a partial ordering, and every value of type \texttt{usize} can be \texttt{inf\_cast}ed to a value of type \texttt{u32} (meaning that the \texttt{inf\_cast} will either result in an error or will result in a value of type \texttt{u32} that is at least as large as the input value of type \texttt{usize}; this also applies for \texttt{i64}).
+        
+        Currently, the \texttt{ExactIntCast} and \texttt{DistanceConstant} traits are implemented for casting between all numeric types, with the exception of \texttt{InfCast} not being implemented for going to or from \texttt{usize} and \texttt{isize} (and thus \texttt{DistanceConstant} not being implemented). Therefore, \texttt{usize} and \texttt{isize} do not have these traits. 
         
         \item \texttt{IntDistance} has trait \texttt{InfCast(TO)}. (Note that this bullet point is not needed in this proof, but it is needed in the code so a hint can be constructed; otherwise a binary search would be needed to construct the hint.)
         
-        Examples: Recall that \texttt{IntDistance} is an alias for the type \texttt{u32}. \texttt{IntDistance} has trait \texttt{InfCast(u32)}, because any unsigned 32-bit integer can be converted to an unsigned 32-bit integer that is at least as big. On the other hand, \texttt{IntDistance} does not have trait \texttt{InfCast(u64)}, because there are some unsigned 64-bit integers that do not have representations as unsigned 32-bit integers.
+        Examples: Recall that \texttt{IntDistance} is an alias for the type \texttt{u32}. \texttt{IntDistance} has trait \texttt{InfCast(u32)}, because any unsigned 32-bit integer can be converted to an unsigned 32-bit integer (type \texttt{IntDistance}) that is at least as big. On the other hand, \texttt{IntDistance} has trait \texttt{InfCast(u64)}, because every value of type \texttt{u64} can either be \texttt{infcast}ed to a value of type \texttt{u32} that is at least as large, or an error can be returned.
+        
+        On the other hand, \texttt{IntDistance} does not have trait \texttt{InfCast(usize)} because \texttt{InfCast} is not implemented for going to or from \texttt{usize}.
         
     \end{itemize}
+    
+    \question{Salil had recommended that examples of types that do and don't work be provided. Should these examples and anti-examples be provided? Should I just say, ``\texttt{u32} has these traits'', or should I provide the description for why it has these traits (as I did above)?}
 \end{itemize}
 
 \textbf{Postconditions:} a valid \texttt{Transformation} must be returned (i.e. if a \texttt{Transformation} cannot be returned successfully, a runtime error should be returned)
@@ -230,7 +236,6 @@ if the Rust code compiles correctly, then the type correctness follows from the 
 % end "copied from clamp"
 Therefore, since our output domain is any value of type \texttt{TO}, we see that $\function$ has the appropriate output domain \texttt{output\_domain}.
 
-% Moreover, for some input vector \texttt{v} drawn from \texttt{input\_domain}, $\function$ either returns $\texttt{exact\_int\_cast(len(data), TO)}$, which will be of type \texttt{TO} by the definition of \texttt{exact\_int\_cast}; or, if the casting fails, it returns $\texttt{get\_max\_consecutive\_int(TO)}$ which, from our definition of $\texttt{get\_max\_consecutive\_int}$, will be of type \texttt{TO}. Therefore, since our output domain is always some value of type \texttt{TO}, we see that $\function$ has the appropriate output domain \texttt{output\_domain}.
 \end{proof}
 
 \begin{proof} \textbf{(Part 2 -- domain-metric compatibility).}
@@ -279,11 +284,6 @@ For vector $v$ with each element $\ell\in v$ drawn from domain $\mathcal{X}$, $\
 \end{lemma}
 
 \begin{proof}
-% Every element $\ell \in v$ is drawn from domain $\mathcal{X}$, so summing over all $z\in \mathcal{X}$ will sum over every element $\ell\in x$.
-
-% From definition \ref{defn:symm-dist}, we know that $h_v(z)$ will return the number of occurrences of value $z$ in vector $v$. 
-
-% Because every element in the vector will be summed over, and because the result for each element is equal to the number of occurrences of that element in the vector, the result will be the number of occurrences 
 
 Every element $\ell \in v$ is drawn from domain $\mathcal{X}$, so summing over all $z\in \mathcal{X}$ will sum over every element $\ell\in x$. Recall that definition \ref{defn:symm-dist} states that $h_v(z)$ will return the number of occurrences of value $z$ in vector $v$. Therefore,  $\sum_{z\in\mathcal{X}} h_v(z)$ is the sum of the number of occurrences of each unique value; this is equivalent to the total number of items in the vector. By the definition of \texttt{len}
 \todo{link to versioned pseudocode defs}
