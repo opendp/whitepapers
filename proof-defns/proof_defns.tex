@@ -19,23 +19,23 @@
 \textwidth15cm \topmargin-0.5cm
 
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{corollary}{Corollary}
-\newtheorem{lemma}{Lemma}[section]
-\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
 \newtheorem*{theorem-non}{Theorem}
 
 \theoremstyle{definition}
-\newtheorem{remark}{Remark}
-\newtheorem{definition}{Definition}[section]
-\newtheorem{observation}{Observation}
-\newtheorem{note}{Note}
-\newtheorem{hope}{Hope}
-\newtheorem{warning}{Warning}
-\newtheorem{problem}{Problem}
-\newtheorem{fear}{Fear}
-\newtheorem{question}{Question}
-\newtheorem{example}{Example}
-\newtheorem{claim}{Claim}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{note}[theorem]{Note}
+\newtheorem{hope}[theorem]{Hope}
+\newtheorem{warning}[theorem]{Warning}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{fear}[theorem]{Fear}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{claim}[theorem]{Claim}
 
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
@@ -73,11 +73,13 @@
 
 \lstset{style=mystyle}
 
-\newcommand{\MultiSet}{\mathrm{MultiSets}}
+\newcommand{\MultiSet}{\mathrm{MultiSet}}
+\newcommand{\MultiSets}{\mathrm{MultiSets}}
+\newcommand{\Vect}{\mathrm{Vec}}
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{d_{in}}
 \newcommand{\dout}{d_{out}}
-\newcommand{\Relation}{\mathrm{Relation}}
+\newcommand{\Relation}{\mathrm{relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
 \newcommand{\True}{\texttt{True}}
@@ -85,6 +87,11 @@
 \newcommand{\clamp}{\texttt{clamp}}
 \newcommand{\questionc}[1]{\textcolor{red}{\textbf{Question:} #1}}
 \newcommand{\T}{\texttt{T}}
+\newcommand{\Lap}{\mathrm{Lap}}
+\newcommand{\M}{\mathcal{M}}
+
+\newcommand{\questionr}[1]{\textcolor{blue}{\textbf{Question for reviewers:}}\textcolor{red}{~#1}}
+\newcommand{\todonei}{{\textcolor{red}{TODO (future -- not enough info yet): }}}
 
 \newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
 \newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
@@ -94,61 +101,64 @@
 
 \title{List of definitions used in the proofs}
 \author{S\'ilvia Casacuberta, Grace Tian, and Connor Wagaman}
-\date{June--July 2021}
+\date{Summer 2021 \\ Version as of \today~(UTC)}
 
 \begin{document}
 
 \maketitle
 
-We use the following guideline: if a term appears in the preconditions \& pseudocode section, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
+We use the following guideline: if a term appears in the \texttt{\textbackslash\texttt{texttt\{...\}}} \LaTeX font, then this term is defined in the pseudocode definitions document. Otherwise, it appears in the proof definitions document. 
 
-In both cases, we maintain the terms in alphabetical order within each section. `TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
+We provide the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
+
+Note that, as of September 6, 2021, the definitions in sections 5+ are not used in the most finalized proof documents. Please leave feedback, but note that the correctness of those sections does not impact the correctness of the proofs that are most finalized.
 
 \tableofcontents
 
-\section*{List of terms that have not yet been added}
+\subsection{List of terms that have not yet been added}
 \begin{itemize}
 \item Generalization of the path property and the corresponding proofs
 \item Better definition for multisets, and an explanation of the bijection between multisets and histograms
 \item Clarification sentence on the stability relation
-\item Approach with floating point
+\item Approach with floating point. New from 3/8: explain the different rounding modes in MPFR and which is the preferred one (round to nearest). Assume idealized model for sampling and the discretized versions. For now: this is in another Overleaf document: \url{https://www.overleaf.com/project/611159043230572a988ee69c}.
+\item Explain unification of vector and scalar versions in the case of L1 distance (e.g., Laplace).
+\end{itemize}
+
+\subsection{Versions of definitions documents}
+\label{sec:versioned-docs}
+
+Other definitions documents are linked here for convenience. This definitions document is not dependent on other definitions documents, but some implementation-related details can be found in the documents listed below.
+
+\begin{itemize}
+    \item \textbf{Pseudocode definitions document:} can be found at \href{https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{this link} (as of September 6, 2021)
 \end{itemize}
 
 \section{Mathematical operators}
-\questionc{We would like to discuss how to approach this section further. We are not clear on the relation between MPFR and functions like \texttt{saturating\_add}.}
-
-The notation we are using for various mathematical operations is, as of 24 June 2021, inspired by section 2 of \url{https://hal-ens-lyon.archives-ouvertes.fr/ensl-01529804/file/crlibm.pdf}. (The notation may change in the future.) We plan to use a similar standardized notation for describing the semantics of \href{https://www.mpfr.org/}{MPFR}.\footnote{Library used in OpenDP to deal with floating point arithmetic.}
+The notation we are using for various mathematical operations is\footnote{As of June 24, 2021.} inspired by section 2 of \url{https://hal-ens-lyon.archives-ouvertes.fr/ensl-01529804/file/crlibm.pdf}. (The notation may change in the future.) We plan to use a similar standardized notation for describing the semantics of \href{https://www.mpfr.org/}{MPFR}.\footnote{Library most likely used in OpenDP to deal with floating point arithmetic with certain rounding modes.}
 
 \begin{definition}[$+, -, \times$]
     The symbols $+$, $-$, and $\times$ represent the usual mathematical operations of addition, subtraction, and multiplication, respectively.
 \end{definition}
 
 \begin{definition}[$\oplus, \ominus, \otimes$]
-    The symbols $\oplus$, $\ominus$, and $\otimes$ denote the corresponding floating point operations in \href{https://www.mpfr.org/}{MPFR} / in Rust arithmetic. 
+    The symbols $\oplus$, $\ominus$, and $\otimes$ denote the corresponding operations on the associated Rust type (rather than on the real numbers).
 \end{definition}
 
-\connor{Maybe change ``floating point operations in \href{https://www.mpfr.org/}{MPFR}'' to some other thing that it denotes. I'm not sure if they should ``denote the corresponding floating point operations in \href{https://www.mpfr.org/}{MPFR}'', but I wanted to preserve the notation, and I wasn't sure what it should be defined on \ldots.}
-    
-\silvia{Use same notation in both pseudocode and proofs?}
-
-\todo{Change to cast.}\connor{I don't understand this todo; could someone else complete it?}
-\begin{definition}
-    Given a Rust value $x$, the function \texttt{val(x)} returns the actual (real or integer) number represented by the Rust value $x$.
-
+\begin{definition}[$\rightarrow$]
+    Let $\mathcal{X}$ and $\mathcal{Y}$ be domains. For the deterministic function $f:\mathcal{X}\rightarrow\mathcal{Y}$, the arrow $\rightarrow$ represents a deterministic mapping from domain $\mathcal{X}$ to domain $\mathcal{Y}$.
 \end{definition}
+
+\begin{definition}[$\rightsquigarrow$]
+    Let $\mathcal{X}$ and $\mathcal{Y}$ be domains. For the randomized function $f:\mathcal{X}\rightsquigarrow\mathcal{Y}$, the squiggly arrow $\rightsquigarrow$ represents a randomized mapping from domain $\mathcal{X}$ to domain $\mathcal{Y}$.
+\end{definition}
+
+%\begin{definition}[\texttt{val}]
+    %Given a Rust value $x$, the function \texttt{val(x)} returns the actual (real or integer) number represented by the Rust value $x$.
+%\end{definition}
 
 \horizline
 
 \subsection{Notes, todos, questions}
-
-\todo{Add the cast definition?}
-
-\todo{max, min, val(x) (give number represented by Rust value), see email from June 21. Subindex for type?}
-
-\todo{Add special float symbol for max, min?} No, from discussion on June 28: as long as we pass as arguments things that have used float symbols, it's OK.
-
-\questionc{Type in subindex vs casting type.}
-\connor{What does ``subindex for type'' mean (see todo above for use of this phrase; meaning possibly relates to question in this line)?} \silvia{I think it means deciding between, for example, $\texttt{max}_{\texttt{u32}}(x, y)$ or $\texttt{cast(max(x, y), u32)}$.}
 
 \section{Data Representation}
 
@@ -156,27 +166,29 @@ The notation we are using for various mathematical operations is, as of 24 June 
 A vector $v$ is an ordered list of objects.
 \end{definition}
 
+A vector is not necessarily Rust vector, but an idealized data container with some notion of records and ordering.
+
 \begin{definition}[Set]
 A set is an unordered list of objects.
 \end{definition}
 
 \begin{definition}[Multiset]
-A multiset is a modification of the notion of a set which, unlike a set, allows for repetitions for each of its elements. The number of repetitions of an element in the multiset corresponds to the \textit{multiplicity} of that element. \questionc{multiset vs MultiSet.} \silvia{Add what we said on July 15 (Connor).}
+A multiset is a modification of the notion of a set which, unlike a set, allows for repetitions for each of its elements. The number of repetitions of an element in the multiset corresponds to the \textit{multiplicity} of that element.
 \end{definition}
 
-%\silvia{Sets are by definition unordered, no need to specify that in the 2nd sentence.}
+\begin{remark}
+    We use the notation $\MultiSets(\mathcal{X})$ to refer to a multiset drawn from the domain of all multisets with elements from domain $\mathcal{X}$. We use the notation $\MultiSet(v)$ to refer to the multiset interpretation (unordered list with multiplicities) of vector $v$.
+\end{remark}
 
 \begin{remark}
-Given a vector $v$, we denote its multiset representation by $\MultiSet(v)$. This distinction is relevant because vectors are ordered objects whereas multisets are not. In the OpenDP library, all datasets are represented as vector domains, and therefore for any vector $v$ we need to use the notation $\MultiSet(v)$ when referring to its multiset representation to indicate that ordering should be dropped. \questionc{Clashes a bit with the $\MultiSet(\X)$ use in the PF; domain vs vector.} \silvia{This should be resolved after consensus on July 15.}
+The distinction between multisets and vectors is relevant because vectors are ordered objects whereas multisets are not. In the OpenDP library, all datasets are represented as vector domains, and therefore for any vector $v$ we need to use the notation $\MultiSet(v)$ when referring to its multiset representation to indicate that ordering should be dropped. 
 \end{remark}
 
 \begin{example}
-    Given $\MultiSet(2, 3, 3, 5, 5, 5 )$, element 2 has multiplicity 1, element 3 has multiplicity 2, and element 5 has multiplicity 3.
+    For $\MultiSet(2, 3, 3, 5, 5, 5 )$, element 2 has multiplicity 1, element 3 has multiplicity 2, and element 5 has multiplicity 3.
 \end{example}
 
-\questionc{Is this clear enough? Because this is very important.} \connor{Note: As of July 12, 2021, it may be less important since we may not need multisets anymore -- for example, we now have a ``vector-first'' definition for symmetric distance that we can use.} \silvia{Still needs discussion: defining terms in a ``vector-first" manner to avoid using $\MultiSet(v)$ in the proofs.}
-
-\questionc{We should decide on whether we want to keep a vector approach or a multiset approach:}
+\iffalse
 \begin{definition}[Histogram notation, multiset version]
 \label{defn:histogram}
     Let $h_x: \mathcal{X} \rightarrow \mathbb{N}$ be the histogram of a multiset $x \in \MultiSet(\mathcal{X} )$ for some domain $\mathcal{X}$. That is, $h_x(z)$ denotes the number of occurrences of $z \in \mathcal{X}$ in multiset $x$ (with multiplicities).
@@ -187,18 +199,34 @@ Given a vector $v$, we denote its multiset representation by $\MultiSet(v)$. Thi
 \begin{definition}[Histogram notation, vector version]
     For any vector $v$ of elements of a domain \texttt{D}, $h_v$ denotes the histogram of $v$. That is, for every element $z$ of type \texttt{T}, $h_v(z)$ denotes the number of occurrences of $z \in \texttt{D}$ in the entries of vector $v$ (with multiplicities).
 \end{definition}
+\fi
 
-\todo{Say there is a bijection between multisets and histograms.}
+\begin{remark}
+    We remark that there is a bijection between multisets and histograms. Therefore, a proof can be carried out with either representation, although usually one will be simpler.
+\end{remark}
+
+\begin{definition}[Histogram notation, generic version]
+\label{defn:histogram}
+    Let $h_x: \mathcal{X} \rightarrow \mathbb{N}$ be the histogram of an (ordered or unordered) list $x$, where every element $\ell\in x$ is drawn from domain $\mathcal{X}$. We represent a histogram as a vector, where index $i$ of histogram $h_x$, denoted $h_x(i)$, is equal to the number of occurrences of value $i$ in list $x$. Therefore, we use $h_x(z)$ to denote the number of occurrences of every $z \in \mathcal{X}$ in list $x$ (with multiplicities).
+\end{definition}
 
 %Given a vector $v$ in some vector domain, $h_v(z)$ denotes the number of occurrences of $z$ in $\MultiSet(v)$.
 
-\section{Transformations \& Stability relation}
-%\silvia{Transformations here? Section for them?}
+\section{Transformations \& Stability relations}
+
+\subsection{Transformations}
+
 \begin{definition}[Transformation]
     A transformation $T$ is a \textit{deterministic} mapping from arbitrary data types of derived data values to arbitrary data types of derived data values. In Rust, a transformation is specified by the following attributes: input domain, output domain, function, input metric, output metric, and stability relation. 
 \end{definition}
 
-See \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"} for further details of the pseudocode specification of a transformation.
+See the pseudocode definitions document (see section \ref{sec:versioned-docs}) for further details on the pseudocode specification of a transformation.
+
+\subsection{Stability relations}
+
+\begin{remark}[Purpose of stability relations]
+    Stability relations are used to tell the correctness of an upper bound on the distance between outputs of a function, given the distance between inputs to a function.
+\end{remark}
 
 %\silvia{Not c in R}
 \begin{definition}[Stability parameter]\label{def:c}
@@ -206,73 +234,149 @@ See \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of d
     \begin{equation}
         d_{\mathcal{Y}}(T(x), T(x')) \leq c \cdot d_{\mathcal{X}}(x, x').
     \end{equation}
-    We say that $c$ is the \textit{stability parameter} of $T$.
+    We say that $c$ is the \textit{stability parameter} of $T$. 
 \end{definition}
 
-\silvia{Add a sentence saying that not all stability relations can be expressed only with $c$ (linear relationship).}
+\begin{remark}[Lipschitz constant]
+    Note that the $c$-stable transformation $T$ in definition \ref{def:c} is also called a Lipschitz function with Lipschitz constant $c$. The stability parameter is analogous to the Lipschitz constant.
+    The stability relation is a more robust relationship compared to the Lipschitz function and constant defined in other programming frameworks such as Fuzzi and PinQ.
+    
+    There are two advantages for the notion of a stability relation over the linear Lipschitz function.
+    
+    First, $\Relation$ can capture a non-linear inequality, such as $\Relation(\din, \dout) = (\dout \leq \din^2)$. Second, the $\Relation$ can capture the composition of more numbers for $\din$ or $\dout$ respectively. We can define $\din$ as multiple privacy loss parameters in a composition.
+    
+    In the OpenDP library, the stability parameter $c$ (which in the case of clamping is equal to~1) gets wrapped up inside of the stability relation property, and the end user can test it empirically.
+\end{remark}
 
-In the Rust code, the stability parameter $c$ (which in the case of clamping is equal to~1) gets wrapped up inside of the stability relation property, and the end user can test it empirically. \todo{Explain better -- but perhaps in the general guidelines doc?}
+\begin{definition}[Linear stability relation]
+\label{defn:lin-stab-rel}
+    The \textit{linear stability relation}, denoted by the term $\Relation(\din, \dout):\mathcal{X}\times\mathcal{Y}\rightarrow bool$, is a boolean function which takes as input some $\din, \dout$ appropriately quantified and returns \texttt{True} if and only if the relation $\dout \geq c \cdot \din$ for some specified value of $c$. 
 
-\begin{definition}[Stability relation]
-    The \textit{stability relation}, denoted $\Relation(\din, \dout)$, is a boolean function which takes as input some $\din, \dout$ appropriately quantified and returns \texttt{True} if and only if the relation $\dout \geq c \cdot \din$ for some specified value of $c$. 
+    We can also write the stability relation in the following form:
+    
+    \begin{equation}
+        \Relation(\din, \dout) = 
+        \begin{cases} 
+          \True & \textrm{if } \dout \geq c \cdot \din \\
+          \False & \textrm{otherwise},
+       \end{cases}
+    \end{equation}
+    specifying the concrete metrics $d_{\X}, d_{\Y}$ and types of $\din, \dout$ inside the function.
+    % The associated type of $d_{\X}$ is equal to the type of $\din$, and the associated type of $d_{\Y}$ is equal to the type of $\dout$. Importantly, such relations are sound but \textit{not necessarily complete}. A transformation is considered \textit{valid} if its stability relation is sound.
 \end{definition}
 
-We can also write the stability relation in the following form:
+\begin{definition}[Generalized stability relation]
+    A \textit{generalized stability relation}, also denoted $\Relation(\din, \dout):\mathcal{X}\rightarrow \mathcal{Y}$, is a boolean function which takes as input some appropriately quantified $\din, \dout$ and returns the result of the relation defined by $\Relation(\din, \dout)$. Unlike with the linear stability relation (defined in definition \ref{defn:lin-stab-rel}), the generalized stability relation can be any boolean function on $\din, \dout$; it is not limited to being an inequality where $\din,\dout$ can only be related by a multiplicative constant $c$.
+\end{definition}
 
-\begin{equation}
-    \Relation(\din, \dout) = 
-    \begin{cases} 
-      \True & \textrm{if } \dout \geq c \cdot \din \\
-      \False & \textrm{otherwise},
-   \end{cases}
-\end{equation}
-specifying the concrete metrics $d_{\X}, d_{\Y}$ and types of $\din, \dout$ inside the function.
+\begin{example}[Generalized stability relation]
+    The stability relation for the ``scalar clamp'' function (no need to understand the ``scalar clamp'' function for the purposes of this example) is $\dout \geq \min(\din, U - L)$. Note that the relationship between $\dout$ and $\din$ is not linear.
+\end{example}
 
-The associated type of $d_{\X}$ is equal to the type of $\din$, and the associated type of $d_{\Y}$ is equal to the type of $\dout$. Importantly, such relations are sound but \textit{not necessarily complete}. A transformation is considered \textit{valid} if its stability relation is sound.
+\subsection{Stability for Row Transforms}
+The following lemma can be applied to row by row transformations. This simplification allows us to avoid case by case analysis of the entire vector by focusing on function on the single row itself. 
+
+\begin{definition}[Pure Function]
+\label{defn:pure-fn}
+    A pure function is a function that has the following properties:
+    \begin{itemize}
+        \item The function return values are identical for identical arguments.
+        \item The function application has no side effects.
+    \end{itemize}
+\end{definition}
+
+\emph{Note: This definition is taken from the \href{https://en.wikipedia.org/wiki/Pure_function}{``Pure function'' article on Wikipedia}.}
+
+\questionr{Does the above definition of a ``pure function'' (definition \ref{defn:pure-fn}) capture the traditional meaning of a pure function, or should anything be added/modified? (Review for Marco)}
+
+\begin{definition}[$\Vect$]
+    We say that vector $v$ is drawn from domain $\Vect(\mathcal{X})$ if and only if all elements $v_i\in v$ are from domain $\mathcal{X}$.
+\end{definition}
+
+\begin{definition}[Row transform]
+Let $f: \Vect(\mathcal{X})\rightarrow \Vect(\mathcal{Y})$ be a function on vectors, and let $v = [v_1,\ldots,v_n]$ be a vector of $n$ elements. We say that $f$ is a row transform with respect to a function $g:\mathcal{X}\rightarrow\mathcal{Y}$ if and only if $f(v) = [g(v_1), \ldots, g(v_n)]$.
+\end{definition}
+
+\begin{remark}
+    Intuitively, a row transformation works like \texttt{map} function in CS. It is a higher-order function that applies a given function to each row (or element) of the function. 
+\end{remark}
+
+\begin{example}[$isEqual$ is a row transform]
+Let $bool$ be the domain of boolean values. For every vector $v = [v_1,\ldots,v_n]\in\Vect(\mathcal{X})$, $isEqual(v,val): \Vect(\mathcal{X})\times \mathbb{R} \rightarrow \Vect(bool)$ is defined as $isEqual(v,val) = [v_1 == val, \ldots, v_n == val]$.
+
+Because $isEqual$ applies the function $g(input)  = (input == val)$ to every element of the vector, $isEqual$ is a row transform.
+\end{example}
+
+\begin{lemma}[Symmetric Distance of Row Transform]
+Let $f:\Vect(\mathcal{X})\rightarrow \Vect(\mathcal{Y})$ be a row transform with respect to $g:\mathcal{X}\rightarrow\mathcal{Y}$. For every pair of vectors $v, w\in \Vect(\mathcal{X})$, we have
+$$d_{Sym}(f(v), f(w)) \leq d_{Sym}(v, w).$$
+\end{lemma}
+
+\begin{proof}
+    We use the histogram notation. Recall that $h_{f(v)}(y)$ is the number of occurrences of $y$ in vector $f(v)$. Therefore, $h_{f(v)}(y)$ is equivalent to the sum of the number of occurrences of each $x \in g^{(-1)}(y)$ in vector $v$. Since $h_{f(v)}(y) = \sum_{x \in g^{-1}(y)} h_v(x)$, we have:
+
+\begin{align*}
+    \abs{h_{f(v)}(y) - h_{f(w)}(y)} &= \abs{\sum_{x \in g^{-1}(y)} h_v(x) - h_w(x)}\\
+    &\leq \sum_{x \in g^{-1}(y)} \abs{h_v(x) - h_w(x)}.
+\end{align*}
+
+The last inequality follows by the triangle inequality. To compute the symmetric distance between $f(v)$ and $f(w)$, we have to sum over all possible elements $y\in \mathcal{Y}$, and then apply the inequality from above:
+
+\begin{align*}
+    d_{Sym}(f(v), f(w)) &= 
+    \sum_{y\in\mathcal{Y}} \abs{h_{f(v)}(y) - h_{f(w)}(y)} \\
+    &\leq \sum_{y\in\mathcal{Y}}\sum_{x \in g^{-1}(y)} \abs{h_v(x) - h_w(x)}\\
+    % &= \sum_y \abs{h_{v}(y) - h_{w}(y)} \\
+    % &= d_{Sym}(v, w)
+\end{align*}
+
+Note that because the sets $g^{-1}(y)$ form a partition of the domain of $g$, we can sum over elements $x$ in the domain of $g$: $$\sum_{y\in\mathcal{Y}}\sum_{x \in g^{-1}(y)} \abs{h_v(x) - h_w(x)} =
+\sum_{x \in \mathcal{X}} \abs{h_{v}(x) - h_{w}(x)} = d_{Sym}(v, w).$$
+
+Therefore we have $$d_{Sym}(f(v), f(w)) \leq d_{Sym}(v, w),$$ as desired.
+\end{proof}
+
+\begin{remark}
+    If the \texttt{make\_row\_by\_row} transformation is directly invoked in the code (as opposed to only using the \textit{row transform} as a proof strategy), then we require that $f$ is a pure function. One such example would be the Impute Constant transformation.
+\end{remark}
 
 %\begin{definition}[Relation]
 %Relation($d_{in}$, $d_{out}$) means that \grace{Silvia can you add what you had for Relation here?}
 %\end{definition}
 
-\subsection{Stability for Randomness}
-
-
-The following lemma and corollary are used to prove the stability guarantee holds in random transformations like \texttt{make\_impute}. 
-\begin{lemma}[Stability for Randomness]
-We define a randomized function $f: \texttt{DI} \rightarrow \texttt{DO}$. $\Relation(d_{in}, d_{out}) = True$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close, there exists a coupling $(R, R')$ of the randomness of $f(x)$ and $f(x')$ such that for all $(r, r') \in Support(R, R'),$ $f_r(x)$ is $d_{out}$-close to $f_{r'}(x')$.
-\end{lemma}
-
-\silvia{Proof? (Grace)}
-
-The following corollary allows us to fix the random seed in random transformations to prove the stability guarantee.
-
-\begin{corollary}
-For randomized function $f: \texttt{DI} \rightarrow \texttt{DO}$, $\Relation(d_{in}, d_{out}) = True$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close and for all fixing of the randomness $r$ of $f$ (fixing seed of PRG), we have that $f_r(x)$ and $f_r(x')$ are $d_{out}$-close.
-\end{corollary}
-
 \horizline
 
 \subsection{Notes, todos, questions}
 
-\todo{Add explanation on forward and backward map?}
+%\todo{Add explanation on forward and backward map?}
 
 %\silvia{TODO: define first the customary definition for sym dist}
 %\silvia{TODO: and make it correct for multisets}
 
 \section{Metrics}
-\silvia{Very important to always specify the types and domains when presenting metrics! (remarks from 24/6 Prof. Vadhan's OH) So:}
+Whenever a metric is defined, this document will contain its mathematical definition. In turn, the pseudocode definitions document (see section \ref{sec:versioned-docs}) will include the list of compatible domains, the list of associated types, and the definition of $d$-close under said metric.
+
+%\silvia{Very important to always specify the types and domains when presenting metrics! (remarks from 24/6 Prof. Vadhan's OH) So:}
 
 %\silvia{With that, changed multisets to vectors, but have we made it clear enough that this is how OpenDP is representing multisets? E.g., $u \Delta v$ is the multiset vs $u \Delta v$ is the vector corresponding to... (see below)}
 
-\silvia{From meeting on July 13: each metric definition must contain its associated type and the list of possible domains it works with. This is not explicitly specified in Rust (i.e., the metric is only a name), but every time we find a transformation / measurement which uses the metric, include the corresponding domain in the definition if it is not there already. It should also include what it means to be $\din$ close under that metric.}
+%\silvia{From meeting on July 13: each metric definition must contain its associated type and the list of possible domains it works with. This is not explicitly specified in Rust (i.e., the metric is only a name), but every time we find a transformation / measurement which uses the metric, include the corresponding domain in the definition if it is not there already. It should also include what it means to be $\din$ close under that metric.}
 
-\connor{Because the Rust type on which a metric operates is covered in the pseudocode definitions, I think we just need to talk mathematically here, like ``symmetric distance is defined on vectors''.}
+%\connor{Because the Rust type on which a metric operates is covered in the pseudocode definitions, I think we just need to talk mathematically here, like ``symmetric distance is defined on vectors''.}
 
-\silvia{On July 15 we settled on only writing the mathematical definition in this document, and then writing the Rust list of domains and associated types in the pseudocode definitions document.}
+%\silvia{On July 15 we settled on only writing the mathematical definition in this document, and then writing the Rust list of domains and associated types in the pseudocode definitions document.}
 
-The associated type of any input metric is the type of the corresponding $\din$. In turn, the associated type of any output metric is the type of the corresponding $\dout$.
+\begin{definition}[Associated type]
+    The associated type of any input metric is the type of the corresponding $\din$. In turn, the associated type of any output metric is the type of the corresponding $\dout$.
+\end{definition}
 
-\subsection{Symmetric distance}
+\begin{remark}
+    Whenever a metric is defined, there is only an associated type, while there are no input/output type. In the OpenDP programming framework, we do not think of metrics as functions in the usual sense; instead, the associated type of distance is the type of the corresponding $\din$ or $\dout$.
+\end{remark}
+
+\subsection{Dataset metrics}
+\subsubsection{Symmetric distance}
+
 \begin{definition}[Symmetric difference]
 The \textit{symmetric difference} between any two vectors $u, v$, denoted by $\MultiSet(u)\Delta \MultiSet(v)$, corresponds to the multiset representation of elements which are in either $u$ or $v$ but not in their intersection. The multiplicity of each element $x$ in $\MultiSet(u)\Delta \MultiSet(v)$ corresponds to the difference in absolute value of the multiplicities of $x$ in $\MultiSet(u)$ and in $\MultiSet(v)$.
 
@@ -285,55 +389,46 @@ The \textit{symmetric difference} between any two vectors $u, v$, denoted by $\M
 
 %\todo{Still unclear which information should be part of the metric. Mike said on 7/6 not to include the list of possible domains, but then where do we say $u, v$ belong to? Mike also said that he is not sure whether the \texttt{u32} should be part of the definition.}
 
-%\silvia{Should change to \texttt{SymmetricDifference}, right?}
-
-\silvia{In all these metric definitions, be careful about associated type and not to say input/output type. We never think of metrics as functions in the usual sense; instead, the associated type of distance is the type of $\din$ or $\dout$. When defining the metrics, we need to specify to which type of domains it applies.}
-
-
-%\silvia{Cardinality of MultiSet(v). Comment on Slack about no input vs output type.}
-
 \begin{example}
 Because a multiset can have repeated elements, for $a = \MultiSet(1,2,1)$ and $b = \MultiSet(1,3)$, we have $a\Delta b = \MultiSet(1,3, 2)$. 
 \end{example}
 
-%\grace{I think there's a typo. Originally it said that $a\Delta b = \MultiSet(1,3,2)$.}
-
-%\connor{Fixed now -- thanks for the catch!}
-
 We introduce the notion of symmetric distance, which differs from symmetric difference in that it is the \emph{cardinality} of the multiset instead of the multiset itself.
 
+\begin{remark}
+    Symmetric \emph{distance} is the metric which is used in the OpenDP library, while the definition for symmetric \emph{difference} is only included for completeness in this document.
+\end{remark}
+
+\begin{remark}[Inspiration for symmetric distance]
+    The notion of \emph{symmetric distance} is inspired by the idea of calculating the cardinality of the symmetric difference between multisets. That is, the symmetric distance between any two (ordered or unordered) lists $u, v$, denoted $d_{Sym}(u,v) = |\MultiSet(u) \Delta \MultiSet(v)|$, can be thought of as the cardinality of the symmetric difference between the multiset interpretations of lists $u$ and $v$. 
+    
+    Because there is a bijection between histograms and multisets, the symmetric distance between vectors $u$ and $v$ can also be thought of as the $L1$ distance between the histograms for $u$ and $v$, denoted $h_u$ and $h_v$ (see definition \ref{defn:histogram}). Then, we equivalently obtain that the symmetric distance between $u$ and $v$ is
+    $$d_{\text{Sym}}(u,v) = d_{L1}(h_{u}, h_{v}) = \sum_{z\in \mathcal{X}} |h_u(z) - h_{v}(z)|.$$
+    
+    The second equality follows from the definition of $L1$ distance (see definition \ref{def:l1-dist}).
+    
+    We now proceed with the definition of symmetric distance, which takes these inspirations and generalizes them.
+\end{remark}
+
+% \begin{definition}[Symmetric distance]
+% The \textit{symmetric distance} between any two (ordered or unordered) lists $u, v$, denoted $d_{Sym}(u,v) = |\MultiSet(u) \Delta \MultiSet(v)|$, is equal to the cardinality of the symmetric difference between the multiset interpretations of lists $u$ and $v$.
+% \end{definition}
+
+% % still working on this paragraph
+% Because there is a bijection between histograms and multisets, we can also define the \emph{symmetric distance} between vectors $u$ and $v$ as the $L1$ distance between the histograms for $u$ and $v$, denoted $h_u$ and $h_v$ (see Definition \ref{defn:histogram}). Then, we equivalently obtain that the symmetric distance between $u$ and $v$ is
+% $$d_{\text{Sym}}(u,v) = \lVert h_{u} - h_{v}\rVert_1 = \sum_{z\in \mathcal{X}} |h_u(z) - h_{v}(z)|.$$
+
+% The second equality follows from the definition of $L1$ distance (see definition \ref{def:l1-dist}).
+
 \begin{definition}[Symmetric distance]
-The \textit{symmetric distance} between any two vectors $u, v$, denoted $d_{Sym} = |\MultiSet(u) \Delta \MultiSet(v)|$, is equal to the cardinality of the symmetric difference between $u$ and $v$.
+
+The symmetric distance between two (unordered or ordered) lists $u,v$, with every element in these lists drawn from domain $\mathcal{X}$, is
+
+\begin{equation}
+    d_{Sym}(u,v)=\sum_{z\in \mathcal{X}} |h_u(z)- h_v(z)|.
+\end{equation}
+    
 \end{definition}
-
-%\connor{Do you think we should leave out the associated type above? The associated type may be more of a job for the pseudocode definitions since types aren't really mentioned in this doc.}
-
-\silvia{The meaning of $d$-close under $d_{Sym}$ has been moved to the pseudocode definitions document.}
-
-%\begin{definition}[$d$-close under $d_{Sym}$]
-    %For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and $d$ of type \texttt{u32}, we say that $u, v$ are $\din$-close under $d_{Sym}$ whenever $d_{Sym}(u, v) = |\MultiSet(u) \Delta \MultiSet(v)| \leq d$.
-%\end{definition}
-
-Note: symmetric distance is the metric which is used in the OpenDP library, while the definition symmetric difference is only included for completeness in this document.
-
-% still working on this paragraph
-Because there is a bijection between histograms and multisets, we can also define the \emph{symmetric distance} between $u$ and $v$ as the $\ell_1$ distance between the histograms for $u$ and $v$, denoted $h_u$ and $h_v$ (see Definition \ref{defn:histogram}). Then, we equivalently obtain that the symmetric distance between $u$ and $v$ is
-$$d_{\text{Sym}}(u,v) = \lVert h_{v} - h_{w}\rVert_1 = \sum_{z\in \mathcal{X}} |h_u(z) - h_{v}(z)|.$$
-
-The second equality follows from the definition of $\ell_1$ distance.
-
-\silvia{Add the above as claim?}
-
-\connor{Since these definitions are all written by us, I think we could say that we're defining symmetric distance as both things.}
-
-\medskip
-\textbf{Alternative definition of symmetric distance.}
-
-Let $u,v$ be vectors of elements drawn from domain $\mathcal{X}$. Define $m_v(\ell)$ as the multiplicity of element $\ell$ in vector $v$. For example, if $v$ contains five instances of the number ``21'', then $m_v(21) = 5$.
-
-An alternative definition of symmetric distance, then, is $$d_{\text{Sym}}(u,v) = \sum_{z\in \mathcal{X}} |m_u(z) - m_v(z)|.$$
-
-\questionc{Which definition should we go with? Original definition, alternative definition, or both?}
 
 \begin{claim}
 Symmetric distance is a metric.
@@ -341,53 +436,22 @@ Symmetric distance is a metric.
 
 Note that null data values are still counted in the symmetric distance. Adding or removing null values still influences the count.
 
-\subsection{The path property of symmetric distance on sized domains}
-
-\questionc{Given that we are avoiding texttt notation in this document, should we change \texttt{SizedDomain} for a mathematical definition of sized domain in the three lemmas that follow?}
-
-\begin{lemma}[Path property of $d_{Sym}$ on \texttt{SizedDomain}]
-    For any two vectors $v, w$ of the same length (that is, for any two vectors $v, w \in$ \texttt{SizedDomain(D)} for some domain \texttt{D}), $d_{Sym}(v,w)$ is an even integer; i.e., $d_{Sym}(v,w) = 2k$ for some integer $k \geq 0$. Moreover, there exist $k$ vectors $v=v_0, v_1, \ldots, v_k=w$ such that $d_{Sym}(v_i,v_{i+1})=2$ for all $i$.
-\end{lemma}
-
-\begin{lemma}
-    For any two vectors $v, w \in$ \texttt{SizedDomain(D)}, $d_{Sym} = 2$ if and only if we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$.
-\end{lemma}
-
-The above lemma follows directly from the definition of symmetric distance. 
-
-\begin{lemma}
-Given a function $f$ on input domain \texttt{SizedDomain(D)}, if $\dout(f(v), f(w)) \leq c$ for all vectors $v, w$ such that $d_{Sym}(v, w) = 2$, then $f$ is $c/2$-stable.
-\end{lemma}
-
-By the definition of $c$-stable (Definition~\ref{def:c}), 
-that $f$ is $c/2$-stable is equivalent to stating that for all pairs $v', w'$ in the input domain, the following holds:
-\[
-    d_{\Y}(f(v'), f(w')) \leq c/2 \cdot d_{Sym}(v', w').
-\]
-Also equivalently, this means that the stability relation of $f$ is
-\[
-    \dout \geq c/2 \cdot \din.
-\]
-
-\todo{Add the more general version of path property by using shortest path distance on graphs as discussed on July 19. The proofs also need to be added.}
-
-\subsection{The path property: a generalization}
-
-\subsection{Substitute distance}
+\subsubsection{Substitute distance}
+\label{defn:subst-dist}
 \begin{definition}[Substitute distance]
-We only define the \emph{substitute distance} $d_{Sym}$ on multisets with the same number of elements. On two multisets $u,v\in \MultiSet(\mathcal{X})$ for some domain $\mathcal{X}$ where $|u| = |v|$, we say that the substitute distance $d_{Subs}(u,v)$ is equal to the cardinality of the relative complement $u \backslash v$, so $d_{Subs}(u,v) = |u\backslash v|$. (This can be thought of as fixing multiset $u$ and finding how many elements in $v$ are not represented in $v$.) \silvia{List of domains? Associated types? It is not in the library, so we cannot answer this -- maybe we should drop it.}
-
-\connor{Substitute distance should have the same domain as symmetric distance since it is defined as half the symmetric distance. Probably the same ``associated type'', too, but I don't think we need to cover that here.}
+We only define the \emph{substitute distance} $d_{Sym}$ on multisets with the same number of elements. On two multisets $u,v\in \MultiSet(\mathcal{X})$ for some domain $\mathcal{X}$ where $|u| = |v|$, we say that the substitute distance $d_{Subs}(u,v)$ is equal to the cardinality of the relative complement $u \backslash v$, so $d_{Subs}(u,v) = |u\backslash v|$. (This can be thought of as fixing multiset $u$ and finding how many elements in $v$ are not represented in $v$.) 
 
 Alternatively, we can define $d_{Subs}$ as
 
-
 $$d_{Subs}(u,v) = \frac{1}{2}d_{\text{Sym}}(u,v).$$
-
-Note that this metric is like a generalization of Hamming distance to multisets (recall that Hamming distance is defined on ordered objects). \silvia{If we say ``recall" then Hamming distance should be defined and explained.} \todo{Add Hamming? It is never used, so I would drop it.}
 \end{definition}
-\silvia{I would not define $d_{Subs}$ in terms of $d_{Sym}$; and instead write original definition and then add the 2-factor equality as a claim.}
-\connor{I think they had defined $d_{subs}$ in terms of $d_{sym}$.}
+
+\begin{remark}[Inspiration for substitute distance]
+    Note that substitute distance is like a generalization of Hamming distance to multisets (Hamming distance is defined only on ordered objects).
+\end{remark}
+
+\questionr{Should substitute distance (defined in definition \ref{defn:subst-dist}) be able to be calculated on datasets that are not the same length (since it is defined as half of the symmetric distance, and since symmetric distance can be calculated on vectors of different length, too)? Or should substitute distance be limited to being calculated on vectors of the same length, since it is inspired by Hamming distance, which can only be calculated on vectors of the same length?}
+
 
 \begin{claim}
 Substitute distance is a metric.
@@ -398,41 +462,278 @@ Substitute distance is a metric.
 %\end{claim}
 
 \begin{remark}
-    As of June 24, substitute distance has been removed from the library as a possible dataset metric. Therefore, symmetric distance is currently the only available dataset metric in the OpenDP library.
+    As of June 24, symmetric distance is a preferred metric over substitute distance. There is a constructor that converts the metric.
 \end{remark}
 
-\subsection{Absolute distance}
+\subsection{Sensitivity metric}
+\subsubsection{Absolute distance}
 
 \begin{definition}[Absolute distance]\label{def:abs}
-    Given two numbers $n, m$, the absolute distance between $n$ and $m$, denoted $d_{Abs}$, is defined as $d_{Abs}(n, m)= |n-m|$, where the horizontal bars represent absolute value.
+    Given two numbers $n, m$, the absolute distance between $n$ and $m$, denoted by $d_{Abs}$, is defined as $d_{Abs}(n, m)= |n-m|$, where the vertical bars denote absolute value.
 \end{definition}
-
-\begin{definition}[$\din$-close under $d_{Abs}$]
-    For any two elements $n, m$ in \texttt{AllDomain(T)}, where \texttt{T} denotes an arbitrary type with trait \texttt{Sub(Output=T)}, and $\din$ of generic type \texttt{Q}, we say that $n, m$ are $\din$-close under $d_{Abs}$ whenever $d_{Abs}(n, m) = |n-m| \leq \din$.
-\end{definition}
-
-The same definition holds for $\dout$.
 
 \begin{claim}
     Absolute distance is a metric.
 \end{claim}
 
-\subsection{Distances}
+\subsubsection{L1 distance}
+\begin{definition}[$L1$ distance]
+\label{def:l1-dist}
+    The \textit{L1 distance} between any two vectors $u, v$, denoted by $d_{L1}(u, v)$, is defined as $d_{L1}(u, v) = \sum_{i=0}^n |u_i - v_i|$.
+\end{definition}
+
+\subsubsection{L2 distance}
+\begin{definition}[$L2$ distance]
+    The \textit{L2 distance} between any two vectors $u, v$, denoted by $d_{L2}(u, v)$, is defined as $d_{L2}(u, v) = \sqrt{\sum_{i=0}^n |u_i - v_i|^2}$.
+\end{definition}
+
+\subsubsection{Lp distance}
+    More generally, we can define the $L_p$ distance between two vectors
+\begin{definition}[$L2$ distance]
+    The \textit{Lp distance} between any two vectors $u, v$, denoted by $d_{Lp}(u, v)$, is defined as $d_{Lp}(u, v) = (\sum_{i=0}^n |u_i - v_i|^p)^{1/p}$.
+\end{definition}
+
+\subsection{Closeness}
 \begin{definition}[$k$-close]
 For any metric $d$, we say that two elements $u, v$ are $k$-close under $d$ if $d(u, v) \leq k$.
 \end{definition}
 
- \silvia{Important: $\din, \dout$ is more general than metrics; e.g., $(\epsilon, \delta)$-DP.}
-
 For example, in the case of symmetric distance, vectors $u$ and $v$ are $k$-close whenever $d_{Sym}(u, v) = |\textrm{MultiSets}(v) \Delta \textrm{MultiSets}(u)| \leq k$. We remark that the type of $k$ must correspond to the associated type of $d$.
 
-We remark that the notion of $k$-closeness can be defined more generally without relying on metrics and instead only using $\din, \dout$. If that is the case, it will be defined accordingly.
+We remark that the notion of $k$-closeness can be defined more generally without relying on metrics and instead only using $\din, \dout$ (e.g., $(\epsilon, \delta)$-DP). If that is the case, it will be defined accordingly.
 
 \horizline
 
 \subsection{Notes, todos, questions}
 
-\todo{Make sure to cite Programming Framework when required.}
+\horizline
+
+{\Large\color{red} The definitions in sections 5+ are not used in the most finalized proof documents. Please leave feedback, but note that the correctness of the following sections does not impact the correctness of the proofs that are most finalized.}
+
+\section{Useful lemmas for simplifying proofs}
+
+\subsection{Stability for Randomness}
+
+The following lemma and corollary are used to prove the stability guarantee holds in random transformations like \texttt{make\_impute}. 
+
+\begin{definition}[Coupling]
+Let $R$ and $R'$ be two random variables defined over the probability spaces $S$ and $S'$, respectively. A \emph{coupling} of $R$ and $R'$ is a joint variable $(r, r')$ taking values in the product space $S \times S'$ such that $r$ has the same marginal distribution as $R$ and $r'$ has the same marginal distribution as $R'.$
+\end{definition}
+\grace{Taken from Jayshree's paper on Theil-Sen estimator.}
+
+\begin{lemma}[Stability for Randomness]
+We define a randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$. $\Relation(d_{in}, d_{out}) = True$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close, there exists a coupling $(R, R')$ of the randomness of $f(x)$ and $f(x')$ such that for all $(r, r') \in Support(R, R'),$ $f_r(x)$ is $d_{out}$-close to $f_{r'}(x')$.
+\end{lemma}
+
+\begin{proof}
+\grace{Proof outline:}
+\begin{itemize}
+    \item Jayshree's paper shows how to do it for neighboring inputs $x, x'$, then $T$ is c-Lipschitz randomized transformation. More precisely, she says that if $dist(d_0, d_1) = 1$, then $dist(T(d_0), T(d_1)) \leq c$.
+    \item We can generalize for any neighboring inputs: $d_Y(T(d_0), T(d_1)) \leq c \times d_X(d_0, d_1)$. 
+    \item Use the fact that $c$-stable implies Relation($\din, \dout$) = $\dout \geq c \times \din$, $d_X(x, x') \leq \din, d_Y(T(x), T(x')) \leq \dout.$
+    \item Then apply Lemma 2.0.8 Jayshree's paper. Important things to note are that we find the probability distribution, which then shows that there exists a valid coupling of $s_{d_0}, s_{d_l}$. This allows us to conclude by triangle inequality distance between the coupled transformations dist$(\tilde{s}_{d_0}$, $\tilde{s}_{d_l}) \leq c \times l$. Therefore then $T$ is a c-Lipschitz randomized transformation.
+    \item If $T$ is a c-Lipschitz randomized transformation, that means that $f_r(x)$ is $\dout$-close to $f_{r'}(x')$. \grace{Need to flesh out these details.}
+\end{itemize}
+
+The following corollary allows us to fix the random seed in random transformations to prove the stability guarantee.
+\end{proof}
+
+\begin{corollary}
+For randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$, $\Relation(d_{in}, d_{out}) = \texttt{True}$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close and for all fixing of the randomness $r$ of $f$ (fixing seed of PRG), we have that $f_r(x)$ and $f_r(x')$ are $d_{out}$-close.
+\end{corollary}
+
+\subsection{The path property of symmetric distance on sized domains}\label{sec:pathsized}
+
+\questionc{Is it a good approach to be avoiding texttt notation entirely in this section (and document)? E.g., then we need to define \texttt{SizedDomain} accordingly.}
+
+\begin{definition}[$SizedDomain$]
+    $SizedDomain(\mathcal{X},n)$ is the set of all vectors with $n$ (not necessarily unique) elements drawn from domain $\mathcal{X}$.
+\end{definition}
+
+\begin{lemma}[Path property of $d_{Sym}$ on \textit{SizedDomain}]\label{lemma:path1}
+    For any two vectors $v, w \in$ \textit{SizedDomain(D, n)} for some domain $D$ and integer $n$, $d_{Sym}(v,w)$ is an even integer; i.e., $d_{Sym}(v,w) = 2k$ for some integer $k \geq 0$. Moreover, there exist $k$ vectors $v=u^0, u^1, \ldots, u^k=w$ such that $d_{Sym}(u^i,u^{i+1})=2$ for all $i$.
+\end{lemma}
+
+\begin{proof}
+    We will first show that $d_{Sym}(v, w) = 2k$ for some integer $k \geq 0$. Since $v, w \in \textit{SizedDomain(D, n)}$, both $v$ and $w$ have length $n$. Let $v[i], w[i]$ denote the $i$-th element of $v$ and $w$, respectively, for $i \geq 0$. We construct $v', w'$ with the following iterative algorithm \texttt{Alg1}: 
+    \begin{enumerate}
+        \item Set $v' \leftarrow v$ and $w' \leftarrow w$.
+        \item For each index $i \in [0, n-1]$, do:
+        \begin{enumerate}
+            \item (Deleting step.) Delete elements $v'[i]$ and $w'[j]$ if and only if there exists a $j \in [0, n-1]$ such that $v'[i] = w'[j]$.
+        \end{enumerate}
+        \item Return $v'$ and $w'$.
+    \end{enumerate}
+    When \texttt{Alg1} terminates, it must be that $\MultiSet(v') \cap \MultiSet(w') = \emptyset$; otherwise, there would exist an index $i$ such that $v'[i] = w'[j]$ for some $j$, which contradicts step 2 (a) in \texttt{Alg1}. Moreover, at each deleting step of the iterative algorithm, we delete exactly one element of $v'$ and one element of $w'$. Let $k'$ denote the total number of deletion steps. Since by assumption $|\MultiSet(v)| = |\MultiSet(w)| = n$, it follows that
+    \[
+        |\MultiSet(v')| = |\MultiSet(w')| = n-k'.
+    \]
+    Hence, $d_{Sym}(v, w) = 2k$, where $k = n-k'$.
+    
+    Next we prove the second part of the lemma by using the same iterative algorithm. We show by construction how to find the $k$ vectors $v = u^0, u^1, \ldots, u^k = w$ such that $d_{Sym}(u^i, u^{i+1}) = 2 \forall \, i$. Let $L$ denote the vector of indices $j$ (in increasing order) such that $v[j]$ has not been deleted at any stage during the iterative algorithm \texttt{Alg1}. As shown above, we know that $|L| = k$. Let $R$ denote the vector constructed with the elements of $w$ that have not been deleted at any stage during \texttt{Alg1}, placed in the same ordering as in $w$. For the same reasons, $|R| = k$.
+    
+    We now construct the $k$ vectors $u^i$ with the following algorithm \texttt{Alg2}:
+    \begin{enumerate}
+        \item Set $u^0 \leftarrow v$.
+        \item Set j = 0.
+        \item For each $i \in [1, k]$, do:
+        \begin{enumerate}
+            \item Set $u^i \leftarrow u^{i-1}$.
+            \item Set $u^i[L[i]] \leftarrow R[j]$.
+            \item Set $j \leftarrow j+1$.
+        \end{enumerate}
+    \end{enumerate}
+\end{proof}
+We need to prove two claims: that at the end of \texttt{Alg2}, $u^k = w$, and that $d_{Sym}(u^i, u^{i+1}) = 2$ for all $i$. 
+
+At each loop iteration of \texttt{Alg2}, only one element of vector $u^i$ changes with respect to $u^{i-1}$, and all other elements are equal. Therefore, $d_{Sym}(u^i, u^{i+1}) = 2$. At the end of the $k$ iteration, vector $u^k$ consists of the $n-k$ original elements that $v$ and $w$ shared in the intersection (counting multiplicities), while the other $k$ elements have been set equal by step 3 (b) in \texttt{Alg2}. Therefore, $u^k = w$, as we wanted to show.
+
+\begin{lemma}\label{lemma:path2}
+    For any two vectors $v, w \in$ \textit{SizedDomain(D, n)}, $d_{Sym}(v, w) = 2$ if and only if we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$.
+\end{lemma}
+
+\begin{proof}
+    This lemma follows directly form the definition of symmetric distance. We need to prove the two directions of the implication:
+    \begin{enumerate}
+        \item If we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$, then $d_{Sym}(v, w) = 2$: This direction is already shown in the proof of Lemma 4.1.
+        \item If $d_{Sym}(v, w) = 2$, then we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$: By the histogram notation, this means that $d_{Sym}(v, w) = \sum_{z \in \mathcal{X}} |h_v(z) - h_w(z)| = 2$. Hence, it must be that there exist two $z_1$ and $z_2$ such that $|h_v(z_1) - h_w(z_1)| = 1$ and $|h_v(z_2) - h_w(z_2)| = 1$, while all other terms in the sum are 0. Assume wlog that $z_1 \in v$ and $z_2 \in w$. Then, we can change $z_1$ to $z_2$ and we obtain a vector equal to $w$, as we wanted to see.
+    \end{enumerate}
+\end{proof}
+
+The above lemma follows directly from the definition of symmetric distance. 
+
+\begin{lemma}\label{lemma:path3}
+Given a function $f: \mathcal{X} \rightarrow \mathcal{Y}$ on input domain \textit{SizedDomain(D, n)}, if $d_{Sym}(f(v), f(w)) \leq c$ for all vectors $v, w \in \textit{SizedDomain(D, n)}$ such that $d_{Sym}(v, w) = 2$, then $f$ is $c/2$-stable.
+\end{lemma}
+
+By the definition of $c$-stable (Definition~\ref{def:c}), 
+that $f$ is $c/2$-stable is equivalent to stating that for all pairs $s, t$ in the input domain, the following holds:
+\[
+    d_{Sym}(f(s), f(t)) \leq c/2 \cdot d_{Sym}(s, t).
+\]
+Also equivalently, this means that the stability relation of $f$ is
+\[
+    \dout \geq c/2 \cdot \din.
+\]
+
+\begin{proof}
+    Let $s, t$ be two arbitrary vectors $\in SizedDomain(D, n)$ such that $d_{Sym}(s, t) \leq \din$ for a fixed value of $\din$. By Lemma \ref{lemma:path1}, it follows that $d_{Sym}(s, t) = 2k$ for some integer $k \geq 0$, and that there exist $k$ vectors $s = u^0, u^1, \ldots, u^k = t$ such that $d_{Sym}(u^i, u^{i+1}) = 2$ for all $i$. By the assumption in lemma \ref{lemma:path3}, it follows that $d_{Sym}(f(u^i), f(u^{i-1})) \leq c$ for all $i$.
+    
+    By the triangle inequality and lemma \ref{lemma:path2}, it follows that
+    \[
+        d_{Sym}(f(s), f(t)) \leq d_{Sym}(f(s), f(u^1)) + d_{Sym}(f(u^1), f(u^2)) + \ldots + d_{Sym}(f(u^{k-1}), f(u^k)) \leq
+    \]
+    \[
+        \leq k c.
+    \]
+    Lastly, by Lemma \ref{lemma:path1}, we know that $k = d_{Sym}(s, t) / 2$, and hence by plugging it into $k$, we obtain that
+    \[
+    d_{Sym}(f(s), f(t)) \leq c/2 \cdot d_{Sym}(s, t).
+    \]
+    By definition, this means that $f$ is $c/2$-stable, as we wanted to show.
+\end{proof}
+
+\subsection{The path property: a generalization}
+Shortest path metric on a weighted graph with positive (non-zero) edge weights. 
+
+\begin{lemma}[Generalized path property -- generalization of lemma \ref{lemma:path1}]
+\label{lemma:path1gen}
+    Given an arbitrary domain-metric pair $(D, d_M)$, we say that $(D, d_M)$ has the path property if there exists a mapping $f: D \rightarrow V$, where $G(V, E)$ denotes a graph with  positive non-zero edge weights and associated shortest path metric $d_G$, such that $\forall v, w \in D$, $d_M(v, w) = d_G(f(v), f(w))$.
+\end{lemma}
+
+Note: We can either say ``$(D, M)$ has the path property" or ``a metric on a domain has the path property".
+
+\silvia{For lemma below, define the equivalent of $d_{Sym}=2$ as the least possible value of $d_M$ or as the distance between two adjacent vertices in the associated graph? Because $\MultiSet$ is specific to $d_{Sym}$. Or change to $d_G(f(v), f(w)) = d_{M_{\min}}$?}
+
+\questionc{Next lemma should work without the path property but I would need a general notion of adjacency; e.g., ``if and only if $v, w$ are adjacent elements". Redundant with $d_{M_{\min}}$? How to generalize the definitions correctly?}
+
+\begin{lemma}[Generalization of Lemma \ref{lemma:path2}]
+\label{lemma:path2gen}
+    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, let $d_{M_{\min}}$ be the minimum possible value of $d_M(v, w)$ over of all possible input pairs $v, w \in D$ for $v \neq w$. Then, $\forall v, w \in D$, $d_M(v, w) = d_{M_{\min}}$ if and only if $f(v), f(w)$ are adjacent vertices in $G$.
+    %$v, w$ are adjacent elements in $D$ under metric $d_M$.
+\end{lemma}
+
+We say that two elements $v, w \in D$ are \textit{adjacent} if and only if $d_M(v, w) = d_{M_{\min}}$.
+
+No need to require the path property in Lemma \ref{lemma:path2gen} above (and hence have a graph) if $v, w$ adjacent $\rightarrow$ $f(v), f(w)$ adjacent.
+
+\silvia{It is important to specify that $d_{M_{\min}}$ is minimal \textit{over $D$.} E.g., adjacent datasets are at $d_{Sym} = 1$ for unbounded domain, but at $d_{Sym} = 2$ for a bounded domain.}
+
+%\questionc{Version 1:}
+%\begin{lemma}
+    %\silvia{Generalization of Lemma 4.3, Version 1.}
+    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, and for any function $f: D \rightarrow \mathcal{Y}$, where domain $\mathcal{Y}$ has associated metric $d_{\mathcal{Y}}$, if $d_{\mathcal{Y}}(f(v), f(w)) \leq c$ for all $v, w \in D$ such that $f(v), f(w)$ are adjacent vertices in $G$, then $f$ is $c/d_{M_{\min}}$-stable.
+%\end{lemma}
+
+%\questionc{Version 2: (the two versions should be equivalent precisely by Lemma 4.5, but I like Version 2 better because it does not need Lemma 4.5}
+\begin{lemma}[Generalization of Lemma \ref{lemma:path3}]
+    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, and for any function $f: D \rightarrow \mathcal{Y}$, where domain $\mathcal{Y}$ has associated metric $d_{\mathcal{Y}}$, if $d_{\mathcal{Y}}(f(v), f(w)) \leq c$ for all $v, w \in D$ such that $d_M(u, v) = d_{M_{\min}}$, then $f$ is $c/d_{M_{\min}}$-stable.
+\end{lemma}
+
+How to generalize $d_{Sym} = 2$? There are 3 possibilities ($d_{Sym} \rightarrow d_M$):
+\begin{itemize}
+    \item $d_M(u, v) = d_{M_{\min}}$
+    \item $u,v$ are adjacent elements under metric $d_M$ (does this make any sense?)
+    \item $f(u), f(v)$ are adjacent vertices in $G$ (depends on the specific construction?)
+\end{itemize}
+
+Lastly, we show how Section \ref{sec:pathsized} on the path property for sized domains is indeed a particular case of the generalized path property. By Lemma \ref{lemma:path1gen}, to show that the domain-metric pair $(SizedDomain, d_{Sym})$ has the path property we need to provide the associated mapping $f: D \rightarrow V$, where $G(V, E)$ denotes a graph with positive non-zero edge weights and associated shortest path metric $d_G$ such that $\forall v, w \in D, d_{Sym}(v, w) = d_G(f(v), f(w))$. 
+
+The mapping is as follows: for each $v, w$ such that $d_{Sym}(v, w) = 2$ (i.e., they are neighboring datasets), we draw an edge of weight 2 between nodes $f(v), f(w)$ in $G$. 
+
+\section{Measures}
+\subsection{Max divergence}
+\begin{definition}[Max divergence \cite{dr14}]
+    The max divergence between two random variables $Y$ and $Z$ taking values from the same domain is defined to be:
+    \[
+        D_{\infty}(Y||Z) = \max_{S \subseteq \textrm{Supp}(Y)} \Big[\ln \dfrac{\Pr[Y \in S]}{\Pr[Z \in S]} \Big].
+    \]
+\end{definition}
+
+\begin{lemma}[\cite{dr14}]
+    A mechanism $\M$ is $\epsilon$-differentially private if and only if on every two neighboring databases $x$ and $y$, $D_{\infty}(\M(x)||\M(y)) \leq \epsilon$ and $D_{\infty}(\M(y)||\M(x)) \leq \epsilon$.
+\end{lemma}
+
+\subsection{Smoothed max divergence}
+\begin{definition}[Smoothed max divergence \cite{dr14}]
+    The smoothed max divergence between $Y$ and $Z$ is defined to be:
+    \[
+        D^{\delta}_{\infty}(Y||Z) = \max_{S \subseteq \textrm{Supp}(Y): \Pr[Y \in S] \geq \delta} \Big[\ln \dfrac{\Pr[Y \in S]-\delta}{\Pr[Z \in S]} \Big].
+    \]
+\end{definition}
+
+\begin{lemma}[\cite{dr14}]
+    A mechanism $\M$ is $(\epsilon, \delta)$-differentially private if and only if on every two neighboring databases $x$ and $y$, $D_{\infty}^{\delta}(\M(x)||\M(y)) \leq \epsilon$ and $D_{\infty}^{\delta}(\M(y)||\M(x)) \leq \epsilon$.
+\end{lemma}
+
+
+\section{Probability distributions}
+\subsection{Laplace distribution}
+\begin{definition}[Laplace distribution \cite{dr14}]
+    The Laplace distribution (centered at 0) with scale $b$ is the distribution with probability density function
+    \[
+        \Lap(x|b) = \dfrac{1}{2b} \exp \Big(\dfrac{-|x|}{b}\Big).
+    \]
+    The variance of this distribution is $\sigma^2 = 2b^2$. \silvia{Add cumulative def.? Probably not necessary. Discuss anything else we would like to add.}
+\end{definition}
+We write $\Lap(b)$ to denote the Laplace distribution with scale $b$.
+
+\todonei{Add Geometric and Gaussian.}
+
+\horizline
+
+\subsection{Notes, todos, questions}
+
+\section{Floating point approach}
+For now, this is summarized in the Overleaf document \url{https://www.overleaf.com/project/611159043230572a988ee69c}.
+
+\begin{thebibliography}{99}
+
+\bibitem{dr14}
+Cynthia Dwork and Aaron Roth. The algorithmic foundations of differential privacy. \textit{Found. Trends Theor. Comput. Sci.} 9.3--4 (2014): 211--407.
+
+
+\end{thebibliography}
 
 
 \end{document}
