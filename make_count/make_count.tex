@@ -1,4 +1,4 @@
-\documentclass[12pt,letterpaper]{article}
+\documentclass[11pt,letterpaper]{article}
 \usepackage{fullpage}
 \usepackage[top=2cm, bottom=4.5cm, left=3.5cm, right=3.5cm]{geometry}
 \usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
@@ -96,6 +96,7 @@ August\or September\or October\or November\or December\fi
 \setlength{\parskip}{0.05in}
 \title{Privacy Proofs for OpenDP: MakeCount}
 \author{Connor Wagaman -- wagaman@college.harvard.edu}
+\date{Version as of \today~(UTC)}
 
 \usepackage{xcolor}
 \usepackage{amsthm}
@@ -118,19 +119,20 @@ August\or September\or October\or November\or December\fi
 
 \tableofcontents
 
-\notebig{This proof document incorporates all suggestions made as of Sept. 4, 2021. The only ``todos'' that remain are those that concern inserting versioned links to the definitions documents. These documents will hopefully be pushed within the next two days, after which I will add the versioned links. There is also one question about the proof of lemma \ref{lemma:len-sum-equiv} (this lemma is new); the question appears immediately after the proof of the lemma.}
+\notebig{This proof document incorporates all suggestions made as of September 6, 2021. There is one question about the proof of lemma \ref{lemma:len-sum-equiv} (this lemma is new); the question appears immediately after the proof of the lemma.}
 
-\section{MakeCount}
-
-\subsection{Version of definitions docs}
+\subsection{Versions of definitions documents}
 \label{sec:versioned-docs}
 
+When looking for definitions for terms that appear in this document, the following versions of the definitions documents should be used.
 
 \begin{itemize}
-    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 5, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/90366236ddcb415010b4fecbce25eca0f4cef2b4/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906140735/https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{here}).
-    \item \textbf{Proof definitions document:}
-    \todo{add link to proof definitions document when available}
+    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/f8b279ab249934182f306138fa14e6390ddae3e9/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201546/https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{here}).
+    
+    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
+
+\section{MakeCount}
 
 \subsection{Implementation of MakeCount in Rust}
 \label{sub:rust-implementation}
