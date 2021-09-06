@@ -123,10 +123,14 @@ August\or September\or October\or November\or December\fi
 \section{MakeCount}
 
 \subsection{Version of definitions docs}
+\label{sec:versioned-docs}
 
-This document uses the version of the definitions docs published as of September 3, 2021. These documents are available at
 
-\todo{Insert URL to version of definitions docs.}
+\begin{itemize}
+    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 5, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/a1d334992b489cb5ace1981a0997ebf7c9264ae5/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906034918/https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{here}).
+    \item \textbf{Proof definitions document:}
+    \todo{add link to proof definitions document when available}
+\end{itemize}
 
 \subsection{Implementation of MakeCount in Rust}
 \label{sub:rust-implementation}
@@ -159,10 +163,7 @@ pub fn make_count<TIA, TO>(
 
 We now use Python-style pseudocode to present a representation of the Rust function.
 
-\emph{Recall that functions in the pseudocode are defined in the document ``List of definitions used in the pseudocode''.}
-
-\todo{provide versioned link to the ``List of definitions used in the pseudocode''}
-
+\emph{Recall that functions in the pseudocode are defined in the document ``List of definitions used in the pseudocode'' (see section \ref{sec:versioned-docs} for links to the document).}
 
 \emph{The use of \texttt{code}-style parameters in the preconditions section below (for example, \texttt{input\_domain}) means that this information should be passed along to the \texttt{Transformation} constructor.}
 
@@ -247,15 +248,9 @@ The \texttt{output\_domain} is \texttt{AllDomain(TO)}. Because our \texttt{outpu
 
 \begin{proof} \textbf{(Part 3 -- stability relation).} We consider two inputs: a vector $\texttt{u}$ of elements of type \texttt{TIA}; and a vector $\texttt{v}$ of elements of type \texttt{TIA}. (This \texttt{input\_domain} is specified in the pseudocode in section \ref{sec:python-pseudocode}.)
 
-Assume it is the case that $\texttt{stability\_relation}(\din, \dout) = \True$. From  the stability relation provided on line \ref{line:stability-relation}, this means that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$. From the pseudocode definitions file at
+Assume it is the case that $\texttt{stability\_relation}(\din, \dout) = \True$. From  the stability relation provided on line \ref{line:stability-relation}, this means that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$. From the pseudocode definitions file linked in section \ref{sec:versioned-docs}, we know that \texttt{inf\_cast} will cast $\din$ to a value at least as large as $\din$, so this assumption that $\texttt{stability\_relation}$ is $\True$ also means that $\din \leq \dout$. Also assume that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric (in accordance with the \texttt{input\_metric} specified in the preconditions in section \ref{sec:python-pseudocode}).
 
-\todo{Add versioned link to pseudocode definitions file}
-
-we know that \texttt{inf\_cast} will cast $\din$ to a value at least as large as $\din$, so this assumption that $\texttt{stability\_relation}$ is $\True$ also means that $\din \leq \dout$. Also assume that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric (in accordance with the \texttt{input\_metric} specified in the preconditions in section \ref{sec:python-pseudocode}).
-
-We now refer to the definition of symmetric distance provided in the proof definitions document;
-\todo{Add versioned link to proof defns doc}
-the definition is copied here for convenience:
+We now refer to the definition of symmetric distance provided in the proof definitions document (a link to this document is available in section \ref{sec:versioned-docs}); the definition is copied here for convenience:
 
 \begin{definition}[Symmetric distance]
 \label{defn:symm-dist}
@@ -263,8 +258,6 @@ Let $u,v$ be vectors of elements drawn from domain $\mathcal{X}$. Define $h_v(\e
 
 A definition of the symmetric distance between $u$ and $v$, then, is $$d_{\text{Sym}}(u,v) = \sum_{z\in \mathcal{X}} |h_u(z) - h_v(z)|.$$
 \end{definition}
-
-\todo{Add versioned link to proof defns doc.}
 
 Combining the assumptions that $\texttt{inf\_cast}(\din, \texttt{TO}) \leq \dout$ and that \texttt{v}, \texttt{w} are $\din$-close under the symmetric distance metric means that
 \begin{equation}
@@ -286,8 +279,7 @@ For vector $v$ with each element $\ell\in v$ drawn from domain $\mathcal{X}$, $\
 \begin{proof}
 
 Every element $\ell \in v$ is drawn from domain $\mathcal{X}$, so summing over all $z\in \mathcal{X}$ will sum over every element $\ell\in x$. Recall that definition \ref{defn:symm-dist} states that $h_v(z)$ will return the number of occurrences of value $z$ in vector $v$. Therefore,  $\sum_{z\in\mathcal{X}} h_v(z)$ is the sum of the number of occurrences of each unique value; this is equivalent to the total number of items in the vector. By the definition of \texttt{len}
-\todo{link to versioned pseudocode defs}
-, then, $\sum_{z\in\mathcal{X}} h_v(z)$ is equivalent to \texttt{len(v)}.
+ available in the pseudocode definitions document linked in section \ref{sec:versioned-docs}, then, $\sum_{z\in\mathcal{X}} h_v(z)$ is equivalent to \texttt{len(v)}.
 
 \end{proof}
 
