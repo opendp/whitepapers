@@ -19,8 +19,8 @@
 \textwidth15cm \topmargin-0.5cm
 
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}[section]
 \newtheorem{proposition}{Proposition}
 \newtheorem*{theorem-non}{Theorem}
 
@@ -34,15 +34,12 @@
 \newtheorem{problem}{Problem}
 \newtheorem{fear}{Fear}
 \newtheorem{question}{Question}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{claim}{Claim}
 
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\C}{\mathbb{C}}
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\A}{\mathbb{A}}
-\newcommand{\horizline}{\noindent\rule{\textwidth}{1pt}}
 
 \usepackage{listings}
 \usepackage{xcolor}
@@ -73,30 +70,42 @@
 
 \lstset{style=mystyle}
 
-\newcommand{\MultiSet}{\mathrm{MultiSet}}
 \newcommand{\MultiSets}{\mathrm{MultiSets}}
-\newcommand{\Vect}{\mathrm{Vec}}
+\newcommand{\MultiSet}{\mathrm{MultiSets}}
 \newcommand{\len}{\mathrm{len}}
 \newcommand{\din}{d_{in}}
 \newcommand{\dout}{d_{out}}
-\newcommand{\Relation}{\mathrm{relation}}
+\newcommand{\Relation}{\mathrm{Relation}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Y}{\mathcal{Y}}
 \newcommand{\True}{\texttt{True}}
 \newcommand{\False}{\texttt{False}}
 \newcommand{\clamp}{\texttt{clamp}}
-\newcommand{\questionc}[1]{\textcolor{red}{\textbf{Question:} #1}}
-\newcommand{\T}{\texttt{T}}
-\newcommand{\Lap}{\mathrm{Lap}}
-\newcommand{\M}{\mathcal{M}}
+\newcommand{\horizline}{\noindent\rule{\textwidth}{1pt}}
+
 
 \newcommand{\silvia}[1]{{ {\color{blue}{(silvia)~#1}}}}
 \newcommand{\grace}[1]{{ {\color{purple}{(grace)~#1}}}}
 \newcommand{\connor}[1]{{ {\color{teal}{(connor)~#1}}}}
+\newcommand{\sfi}{}%{\text{\textcolor{olive}{(Salil's feedback incorporated.)}}}
+\newcommand{\todosfi}{\todo{Add Salil's feedback.}}
 
-\newcommand{\todo}{{\textcolor{red}{TODO }}}
+\newcommand{\metricDefn}[1]{The definition of \emph{#1} in the ``proof definitions'' document tells how the distance between data is calculated.}
 
-\title{List of definitions used in the proofs}
+\newcommand{\inRust}[2]{See \url{#2}.}
+\newcommand{\inOpenDPRust}[2]{In OpenDP (Rust), this is called \texttt{#1}. See \url{#2}.}
+\newcommand{\inPython}[2]{In Python, this is called \texttt{#1}. See \url{#2}.}
+\newcommand{\questionc}[1]{\textcolor{red}{\textbf{Question:} #1}}
+\newcommand{\questionr}[1]{\textcolor{blue}{\textbf{Question for reviewers:}}\textcolor{red}{~#1}}
+\newcommand{\T}{\texttt{T}}
+\newcommand{\data}{\texttt{data}}
+\newcommand{\todo}{{\textcolor{red}{TODO: }}}
+\newcommand{\todonei}{{\textcolor{red}{TODO (future -- not enough info yet): }}}
+\newcommand{\iffText}{\text{if and only if}}
+\newcommand{\domainType}[1]{This domain has type \texttt{#1}.}
+
+
+\title{List of definitions used in the pseudocode}
 \author{S\'ilvia Casacuberta, Grace Tian, and Connor Wagaman}
 \date{Summer 2021}
 
@@ -104,601 +113,661 @@
 
 \maketitle
 
-We use the following guideline: if a term appears in the preconditions \& pseudocode section, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
+We use the following guideline: if a term appears in the preconditions \& pseudocode section of a proof document, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
 
-In both cases, we maintain the terms in alphabetical order within each section. `TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
+We maintain the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
 
-Note that, as of September 4, 2021, the definitions in sections 5+ are not used in the most finalized proof documents. Please leave feedback, but note that the correctness of the following sections does not impact the correctness of the proofs that are most finalized.
+We also recommend linking to the Rust Standard Library when the term is defined there.
 
 \tableofcontents
 
 \section*{List of terms that have not yet been added}
 \begin{itemize}
-\item Generalization of the path property and the corresponding proofs
-\item Better definition for multisets, and an explanation of the bijection between multisets and histograms
-\item Clarification sentence on the stability relation
-\item Approach with floating point. New from 3/8: explain the different rounding modes in MPFR and which is the preferred one (round to nearest). Assume idealized model for sampling and the discretized versions.
-\item Explain unification of vector and scalar versions in the case of L1 distance (e.g., Laplace).
+    \item The compatibility pairing and subdomains. Compatibility inheritance for subdomains and proof for subdomain traits. But this is awaiting the specific final implementation.
+    \item Clarify why we specify vectors for \texttt{SizedDomain}
+    \item Add definition of a valid measurement
+    \item Double-check newly added definitions, and trait vs function (e.g., \texttt{SaturatingAdd} and \texttt{saturating\_add})
+    \item Incorporate corrections from GitHub
+    \item Add type trait \texttt{Laplace Domain}, and the other ones from base Laplace: \texttt{D::Atom}, \texttt{SampleLaplace}, \texttt{Float}, and \texttt{InfCast(D::Atom)}.
+    \item Add function \texttt{is\_sign\_negative()} from Laplace
+    \item Add function \texttt{.recip()} from Laplace
+    \item Add function \texttt{sample\_laplace} (idealized, for now)
+    \item Add \texttt{IntDistance}, although Mike said to keep using \texttt{u32} in the pseudocode type signing for now.
+    \item Definition of the Rust iterator
+    \item Do we need \texttt{fold}? Maybe always use loops
 \end{itemize}
 
-\section{Mathematical operators}
-The notation we are using for various mathematical operations is\footnote{As of June 24, 2021.} inspired by section 2 of \url{https://hal-ens-lyon.archives-ouvertes.fr/ensl-01529804/file/crlibm.pdf}. (The notation may change in the future.) We plan to use a similar standardized notation for describing the semantics of \href{https://www.mpfr.org/}{MPFR}.\footnote{Library most likely used in OpenDP to deal with floating point arithmetic with certain rounding modes.}
+\section{Types}
+% any types should be listed here
 
-\begin{definition}[$+, -, \times$]
-    The symbols $+$, $-$, and $\times$ represent the usual mathematical operations of addition, subtraction, and multiplication, respectively.
+\begin{note}[A note on \texttt{()} vs. \texttt{[]}] Parentheses, \texttt{()}, are used to create an instance of a domain. Square brackets, \texttt{[]}, are used to describe the type of a domain.
+
+For example, \texttt{AllDomain(i8)} is the domain of all values of type \texttt{i8}. However, the type of \texttt{AllDomain(i8)} -- the domain itself, not the elements of the domain -- is \texttt{AllDomain[i8]}; note the square brackets. This typing style is inspired by the notation used in Python; see \url{https://docs.python.org/3/library/typing.html}.
+\end{note}
+
+\begin{definition}[\texttt{bool}]
+    The type \texttt{bool} represents a value which can only be either \texttt{True} or \texttt{False}. If a \texttt{bool} is \texttt{cast}ed to an integer, \texttt{True} will be \texttt{1} and \texttt{False} will be \texttt{0}.
 \end{definition}
 
-\begin{definition}[$\oplus, \ominus, \otimes$]
-    The symbols $\oplus$, $\ominus$, and $\otimes$ denote the corresponding operations on the associated Rust type (rather than on the real numbers).
+\begin{definition}[\texttt{::Carrier}]
+\texttt{SomeDomain::Carrier} is the type of a member in \texttt{SomeDomain}, where \texttt{SomeDomain} is a domain. See section \ref{sec:domains} for more information on domains. 
 \end{definition}
 
-\begin{definition}[$\rightarrow$]
-    Let $\mathcal{X}$ and $\mathcal{Y}$ be domains. For the deterministic function $f:\mathcal{X}\rightarrow\mathcal{Y}$, the arrow $\rightarrow$ represents a deterministic mapping from domain $\mathcal{X}$ to domain $\mathcal{Y}$.
+For example, \texttt{AllDomain(T)::Carrier} is $\T$.
+
+\begin{definition}[\texttt{f32}]$\sfi$
+    \texttt{f32} is the Rust 32-bit floating point type. 
+    
+    \inRust{f32}{https://doc.rust-lang.org/std/primitive.f32.html}
 \end{definition}
 
-\begin{definition}[$\rightsquigarrow$]
-    Let $\mathcal{X}$ and $\mathcal{Y}$ be domains. For the randomized function $f:\mathcal{X}\rightsquigarrow\mathcal{Y}$, the squiggly arrow $\rightsquigarrow$ represents a randomized mapping from domain $\mathcal{X}$ to domain $\mathcal{Y}$.
+\begin{definition}[\texttt{f64}]$\sfi$
+    \texttt{f64} is the Rust 64-bit floating point type. 
+    
+    \inRust{f64}{https://doc.rust-lang.org/std/primitive.f64.html} 
 \end{definition}
 
-%\begin{definition}[\texttt{val}]
-    %Given a Rust value $x$, the function \texttt{val(x)} returns the actual (real or integer) number represented by the Rust value $x$.
-%\end{definition}
+\todonei{Add / pointers to  ``binary64” type defined in IEEE 754-2008.}
 
-\horizline
+\begin{definition}[\texttt{::Imputed}]
+\texttt{SomeDomain::Imputed} is the type of \texttt{SomeDomain} after imputation, where \texttt{SomeDomain} is a domain. 
 
-\subsection{Notes, todos, questions}
+\end{definition}
+Note however, that \texttt{SomeDomain::Imputed} may contain a null value. See the proof section of \href{https://www.overleaf.com/project/60fed2512ffa2d5983b1d0eb}{proof section of \texttt{impute\_constant}}. 
 
-\section{Data Representation}
-
-\begin{definition}[Vector]
-A vector $v$ is an ordered list of objects.
+\begin{definition}[\texttt{IntDistance}]
+\texttt{IntDistance} is equivalent to \texttt{u32}.
 \end{definition}
 
-A vector is not necessarily Rust vector, but an idealized data container with some notion of records and ordering.
-
-\begin{definition}[Set]
-A set is an unordered list of objects.
-\end{definition}
-
-\begin{definition}[Multiset]
-A multiset is a modification of the notion of a set which, unlike a set, allows for repetitions for each of its elements. The number of repetitions of an element in the multiset corresponds to the \textit{multiplicity} of that element.
-\end{definition}
-
-\begin{remark}
-    We use the notation $\MultiSets(\mathcal{X})$ to refer to a multiset drawn from the domain of all multisets with elements from domain $\mathcal{X}$. We use the notation $\MultiSet(v)$ to refer to the multiset interpretation (unordered list with multiplicities) of vector $v$.
-\end{remark}
-
-\begin{remark}
-The distinction between multisets and vectors is relevant because vectors are ordered objects whereas multisets are not. In the OpenDP library, all datasets are represented as vector domains, and therefore for any vector $v$ we need to use the notation $\MultiSet(v)$ when referring to its multiset representation to indicate that ordering should be dropped. 
-\end{remark}
-
-\begin{example}
-    For $\MultiSet(2, 3, 3, 5, 5, 5 )$, element 2 has multiplicity 1, element 3 has multiplicity 2, and element 5 has multiplicity 3.
-\end{example}
-
-\iffalse
-\begin{definition}[Histogram notation, multiset version]
-\label{defn:histogram}
-    Let $h_x: \mathcal{X} \rightarrow \mathbb{N}$ be the histogram of a multiset $x \in \MultiSet(\mathcal{X} )$ for some domain $\mathcal{X}$. That is, $h_x(z)$ denotes the number of occurrences of $z \in \mathcal{X}$ in multiset $x$ (with multiplicities).
-\end{definition}
-
-%\todo{Change to vector domain notation. For vector $v$, $h_v(z)$ denotes the number of occurrences of $z$ in $\MultiSet(v)$.} \todo{Specify types: z?}
-
-\begin{definition}[Histogram notation, vector version]
-    For any vector $v$ of elements of a domain \texttt{D}, $h_v$ denotes the histogram of $v$. That is, for every element $z$ of type \texttt{T}, $h_v(z)$ denotes the number of occurrences of $z \in \texttt{D}$ in the entries of vector $v$ (with multiplicities).
-\end{definition}
-\fi
-
-\begin{remark}
-    We remark that there is a bijection between multisets and histograms. Therefore, a proof can be carried out with either representation, although usually one will be simpler.
-\end{remark}
-
-\begin{definition}[Histogram notation, generic version]
-\label{defn:histogram}
-    Let $h_x: \mathcal{X} \rightarrow \mathbb{N}$ be the histogram of an (ordered or unordered) list $x$, where every element $\ell\in x$ is drawn from domain $\mathcal{X}$. That is, $h_x(z)$ denotes the number of occurrences of every $z \in \mathcal{X}$ in list $x$ (with multiplicities).
-\end{definition}
-
-%Given a vector $v$ in some vector domain, $h_v(z)$ denotes the number of occurrences of $z$ in $\MultiSet(v)$.
-
-\section{Transformations \& Stability relations}
-%\silvia{Transformations here? Section for them?}
-\begin{definition}[Transformation]
-    A transformation $T$ is a \textit{deterministic} mapping from arbitrary data types of derived data values to arbitrary data types of derived data values. In Rust, a transformation is specified by the following attributes: input domain, output domain, function, input metric, output metric, and stability relation. 
-\end{definition}
-
-See \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"} for further details of the pseudocode specification of a transformation.
-
-%\silvia{Not c in R}
-\begin{definition}[Stability parameter]\label{def:c}
-    For some value of $c$, we say that a transformation $T$ is $c$\textit{-stable} if for all $x, x'$ in the input domain $\X$, and for input metric $d_{\X}$ and output metric $d_{\Y}$,
-    \begin{equation}
-        d_{\mathcal{Y}}(T(x), T(x')) \leq c \cdot d_{\mathcal{X}}(x, x').
-    \end{equation}
-    We say that $c$ is the \textit{stability parameter} of $T$. 
-\end{definition}
-
-\connor{Should we include the remark below?}
-
-\begin{remark}[Lipschitz constant]
-    Note that the $c$-stable transformation $T$ in \ref{def:c} is also called a Lipschitz function with Lipschitz constant $c$. The stability parameter is analogous to the Lipschitz constant.
-\end{remark}
-
-The stability relation is a more robust relationship compared to the Lipschitz function and constant defined in other programming frameworks defined in Fuzzi and PinQ \grace{TODO cite these?}. There are two advantages for the notion of a stability relation over the linear lipschitz function. First, $\Relation$ can capture a non-linear inequality, such as $\Relation(\din, \dout) = (\dout \leq \din^2)$. Second, the $\Relation$ can capture the composition of more numbers for $\din$ or $\dout$ respectively. We can define $\din$ as multiple privacy loss parameters in a composition. \grace{Composition has not been implemented yet in Prog Framework.}
-\grace{Even though we said that not all stability relations can be expressed only with linear relationship, we don't have a more general definition that encompasses broader notions.}
-
-\begin{example}
-    In the case of scalar clamp, the stability relation is $\dout \geq \min(\din, U - L)$. Hence, the relationship between $\dout$ and $\din$ is not linear.
-\end{example}
-
-In the Rust code, the stability parameter $c$ (which in the case of clamping is equal to~1) gets wrapped up inside of the stability relation property, and the end user can test it empirically.
-
-\begin{definition}[Linear stability relation]
-    The \textit{linear stability relation}, denoted by the term $\Relation(\din, \dout)$, is a boolean function which takes as input some $\din, \dout$ appropriately quantified and returns \texttt{True} if and only if the relation $\dout \geq c \cdot \din$ for some specified value of $c$. 
-\end{definition}
-
-We can also write the stability relation in the following form:
-
-\begin{equation}
-    \Relation(\din, \dout) = 
-    \begin{cases} 
-      \True & \textrm{if } \dout \geq c \cdot \din \\
-      \False & \textrm{otherwise},
-   \end{cases}
-\end{equation}
-specifying the concrete metrics $d_{\X}, d_{\Y}$ and types of $\din, \dout$ inside the function.
-
-The associated type of $d_{\X}$ is equal to the type of $\din$, and the associated type of $d_{\Y}$ is equal to the type of $\dout$. Importantly, such relations are sound but \textit{not necessarily complete}. A transformation is considered \textit{valid} if its stability relation is sound.
-
-\subsection{Stability for Row Transforms}
-The following lemma can be applied to row by row transformations. This simplification allows us to avoid case by case analysis of the entire vector by focusing on function on the single row itself. 
-
-\begin{definition}[Pure Function]
-    A pure function is a function that has the following properties:
+\begin{definition}[\texttt{isize}]
+    \texttt{isize} is defined differently on 32-bit and 64-bit machines. This is because the size of this primitive is equal to the number of bytes it takes to reference any location in memory.
     \begin{itemize}
-        \item The function return values are identical for identical arguments.
-        \item The function application has no side effects.
+        \item \textbf{32-bit machines:} for \texttt{v} a value of type \texttt{usize}, $\texttt{v}\in \{-2^{31},\ldots,-1,0,1,\ldots,2^{32} - 1\}$
+        \item \textbf{64-bit machines:} for \texttt{v} is a value of type \texttt{usize}, $\texttt{v}\in \{-2^{63},\ldots,-1,0,1,\ldots,2^{63} - 1\}$
     \end{itemize}
+    
+    \inRust{isize}{https://doc.rust-lang.org/std/primitive.isize.html}
 \end{definition}
 
-Note: This function is taken from the \href{https://en.wikipedia.org/wiki/Pure_function}{``Pure function'' article on Wikipedia}. \grace{The definition will need to be modified according to Marco's comments.} 
-
-\silvia{Also need to add the definition of randomized pure function?}
-
-\begin{definition}[$\Vect$]
-    We say that vector $v$ is drawn from domain $\Vect(\mathcal{X})$ if and only if all elements $v_i\in v$ are from domain $\mathcal{X}$.
+\begin{definition}[\texttt{Option}]
+    The type \texttt{Option[T]} is the type for all values of type \texttt{T}, as well as the type for the values \texttt{None} and \texttt{Some}, where \texttt{Some(val:T)} is equal to \texttt{val}.
+    
+    \inRust{Enum std::option::Option}{https://doc.rust-lang.org/std/option/enum.Option.html}
 \end{definition}
 
-\begin{definition}[Row transform]
-Let $f: \Vect(\mathcal{X})\rightarrow \Vect(\mathcal{Y})$ be a function on vectors, and let $v = [v_1,\ldots,v_n]$ be a vector of $n$ elements. We say that $f$ is a row transform with respect to a function $g:\mathcal{X}\rightarrow\mathcal{Y}$ if and only if $f(v) = [g(v_1), \ldots, g(v_n)]$.
+\begin{definition}[\texttt{u32}]$\sfi$
+    \texttt{u32} is the Rust 32-bit unsigned integer type. If $v$ is a value of type \texttt{u32}, then we know that $v\in \{0,1,2,\ldots, 2^{32}-1\}$. 
+    
+    \inRust{u32}{https://doc.rust-lang.org/std/primitive.u32.html}
 \end{definition}
 
-\begin{remark}
-    Intuitively, a row by row transformation works like \texttt{map} function in CS. It is a higher-order function that applies a given function to each row (or element) of the function. 
-\end{remark}
+\begin{definition}[\texttt{usize}]
+    \texttt{usize} is defined differently on 32-bit and 64-bit machines. This is because the size of this primitive is equal to the number of bytes it takes to reference any location in memory.
+    \begin{itemize}
+        \item \textbf{32-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then $\texttt{v}\in \{0,1,2,\ldots,2^{32} - 1\}$
+        \item \textbf{64-bit machines:} if \texttt{v} is a value of type \texttt{usize}, then $\texttt{v}\in \{0,1,2,\ldots,2^{64} - 1\}$
+    \end{itemize}
+    
+    \inRust{usize}{https://doc.rust-lang.org/std/primitive.usize.html}
+\end{definition}
 
-\begin{example}[$isEqual$ is a row by row transform]
-Let $bool$ be the domain of boolean values. For every vector $v = [v_1,\ldots,v_n]\in\Vect(\mathcal{X})$, $isEqual(v,val): \Vect(\mathcal{X})\times \mathbb{R} \rightarrow \Vect(bool)$ is defined as $isEqual(v,val) = [v_1 == val, \ldots, v_n == val]$.
-
-Because $isEqual$ applies the function $f(input)  = (input == val)$ to every element of the vector, it is a row-by-row transform.
-\end{example}
-
-\begin{lemma}[Symmetric Distance of Row Transform]
-Let $f$ be a row transform. For every pair of vectors $v, w\in \Vect(\mathcal{X})$, we have
-$$d_{Sym}(f(v), f(w)) \leq d_{Sym}(v, w).$$
-\end{lemma}
-
-\begin{proof}
-    We use the histogram notation. Recall that $h_{f(v)}(z)$ is the number of occurrences of $z$ in vector $f(v)$. This is equivalent to the sum of the number of occurrences of each $y \in f^{(-1)}(z)$ in vector $v$. Since $h_{\texttt{function}(v)}(z) = \sum_{y \in f^{-1}(z)} h_v(y)$, we have:
-
-\begin{align*}
-    \abs{h_{f(v)}(z) - h_{f(w)}(z)} &= \abs{\sum_{y \in f^{-1}(z)} h_v(y) - h_w(y)}\\
-    &\leq \sum_{y \in f^{-1}(z)} \abs{h_v(y) - h_w(y)}.
-\end{align*}
-
-The last inequality follows by the triangle inequality. To compute the symmetric distance, we have to sum over all possible elements $z$, and then apply the inequality from above:
-
-\begin{align*}
-    d_{Sym}(f(v), f(w)) &= 
-    \sum_z \abs{h_{f(v)}(z) - h_{f(w)}(z)} \\
-    &\leq \sum_z \sum_{y \in f^{-1}(z)} \abs{h_v(y) - h_w(y)}\\
-    % &= \sum_y \abs{h_{v}(y) - h_{w}(y)} \\
-    % &= d_{Sym}(v, w)
-\end{align*}
-
-Note that because the sets $f^{-1}(z)$ form a partition of the domain of $f$, we can simply sum over elements $y$ in the domain of $f$: $$\sum_z \sum_{y \in f^{-1}(z)} \abs{h_v(y) - h_w(y)} = \sum_y \abs{h_{v}(y) - h_{w}(y)} = d_{Sym}(v, w)$$
-
-Therefore we have $$d_{Sym}(f(v), f(w)) \leq d_{Sym}(v, w),$$ as desired.
-\end{proof}
-
-\questionc{Add any other metrics?}
-
-\silvia{Proof is in \texttt{make\_row\_by\_row}. But there is a problem with the role of the pure function there.} 
-
-\begin{remark}
-    If the \texttt{make\_row\_by\_row} transformation is directly invoked in the code (as opposed to only using the \textit{row transform} as a proof strategy), then we require that $f$ is a pure function. One such example would be the Impute Constant transformation.
-\end{remark}
-
-%\begin{definition}[Relation]
-%Relation($d_{in}$, $d_{out}$) means that \grace{Silvia can you add what you had for Relation here?}
-%\end{definition}
+\begin{definition}[\texttt{Vec[T]}]$\sfi$
+    The Rust type \texttt{Vec[T]} consists of ordered lists of type \texttt{T}. For example, if \texttt{T = bool}, then values of type \texttt{Vec[T]} include $\texttt{[], [0], [1], [0, 0],} \ldots$. A vector can contain no more than \texttt{get\_max\_value(usize)} elements. 
+    
+    \inRust{Vec<T>}{https://doc.rust-lang.org/std/vec/struct.Vec.html}
+\end{definition}
 
 \horizline
 
 \subsection{Notes, todos, questions}
 
-%\todo{Add explanation on forward and backward map?}
+%\silvia{Discuss: bounded vs lower bound and upper bound}
 
-%\silvia{TODO: define first the customary definition for sym dist}
-%\silvia{TODO: and make it correct for multisets}
+%\todonei{Include info on MPFR, and possibly relate it to our existing definitions of floats.}
+
+\questionr{Should we have a general definition for ``floats'' (and ``integers''?), or is it sufficiently understood what a float is?}
+
+\section{Domains}
+\label{sec:domains}
+$\sfi$ A \emph{data domain} is a representation of the set of values on which the function associated with a transformation or measurement can operate.  Each metric (see section \ref{sec:metrics}) is associated with certain data domains. Types used for implementing domains in OpenDP have trait \texttt{Domain} (defined in definition \ref{defn:traits-domain}).
+
+\begin{definition}[\texttt{AllDomain}]$\sfi$
+\texttt{AllDomain(T)} is the domain of all values of type $\T$. \domainType{AllDomain[T]}
+\end{definition}
+
+For example, \texttt{AllDomain(u32)} is the domain of all values of type \texttt{u32}.
+
+\begin{definition}[\texttt{IntervalDomain}] \sfi For any type \texttt{T} with trait \texttt{TotalOrd} (see definition \ref{defn:totalord}),\footnote{As of June 28, the OpenDP library requires the weaker condition of partial ordering (implements \texttt{PartialOrd}) instead.} \texttt{IntervalDomain(L:T, U:T)} is the domain of all values \texttt{v} of type \texttt{T} such that \texttt{L <= v} and \texttt{v <= U}, for a type \texttt{T} that has a total ordering (\texttt{T} has trait \texttt{TotalOrd}) and for values \texttt{L <= U} of type \texttt{T}. \domainType{IntervalDomain[T]}
+\end{definition}
+
+An important remark is that the Rust implementation of \texttt{IntervalDomain} checks that \texttt{L <= U}, and returns an error if \texttt{L > U}. Therefore, any transformation or measurement that uses \texttt{IntervalDomain} does not need to re-check this constraint and raise a possible exception for it. 
+
+Note that, because both \texttt{L} and \texttt{U} are of type \texttt{T}, there is no need to explicitly pass \texttt{T}; the type \texttt{T} can be inferred. \texttt{IntervalDomain} is defined on any type that implements the trait \texttt{TotalOrd}. For example, \texttt{IntervalDomain(1:u32, 17:u32)} corresponds to a domain that contains all the \texttt{u32} values \texttt{v} such that \texttt{1 <= v} and \texttt{v <= 17}; it has type \texttt{IntervalDomain[u32]}.
+
+\begin{definition}[\texttt{InherentNullDomain}] 
+    \texttt{InherentNullDomain(inner\_domain:D)} is the domain of all values of data domain \texttt{inner\_domain} unioned with a \texttt{null} value. Note that this means that a domain may have only \emph{one} \texttt{null} value; as a result, applying \texttt{InherentNullDomain} to a domain already containing a \texttt{null} value will not affect the domain. \domainType{InherentNullDomain[D]}
+\end{definition}
+
+\begin{definition}[\texttt{SizedDomain}] $\sfi$
+    \texttt{SizedDomain(inner\_domain:D, n:usize)} is the domain of all elements from domain \texttt{D} restricted to length \texttt{n}. \domainType{SizedDomain[D]}
+\end{definition}
+
+For example, \texttt{SizedDomain(VectorDomain(AllDomain(u32)), n)} is the domain of all vectors of length $\texttt{n}$ with elements of type \texttt{u32}.
+
+\begin{definition}[\texttt{VectorDomain}]
+\texttt{VectorDomain(inner\_domain:D)} is the domain of all vectors of elements drawn from domain \texttt{inner\_domain}. 
+\domainType{VectorDomain[D]}
+\end{definition}
+
+\subsection{Subdomains}
+
+\horizline
+
+\subsection{Notes, todos, questions}
+
+\todonei{As of July 20, OpenDP plans to include subdomains (see the Architecture meeting notes for 20/7). We have to include them and prove that they are indeed subdomains. Then in the metric definition it is enough to list the most general domain, since the domain-metric compatibility in inherited. We will add the necessary information here after Mike and Andy have finished the implementation details.}
+
+Preliminary theorems:
+
+\begin{theorem}[Domain-metric compatibility inheritance.]
+    Given a domain \texttt{D}, for any subdomain \texttt{S} $\subseteq$ \texttt{D}, if \texttt{D} is compatible with metric \texttt{M} then \texttt{S} is compatible with metric \texttt{M}.
+\end{theorem}
+
+\section{Traits}
+% any traits should be defined here
+
+\begin{definition}[\texttt{Abs}]
+    A type \texttt{T} has trait \texttt{Abs} if and only if the absolute value of a value of type \texttt{T} can be taken.
+\end{definition}
+
+\begin{definition}[\texttt{Bounded}]
+    A type $\T$ has trait \texttt{Bounded} $\iffText$ $\T$ has some upper bound and some lower bound (some smallest possible value and some largest possible value).
+\end{definition}
+
+\begin{definition}[\texttt{CheckedMul}]
+    A type \texttt{T} has trait \texttt{CheckedMul} if it performs multiplication that returns \texttt{None} if overflowing.
+\end{definition}
+
+\begin{definition}[\texttt{DistanceConstant}]
+    A type \texttt{TO} has trait \texttt{DistanceConstant(TI)} if:
+    \begin{itemize}
+        \item \texttt{TO} has trait \texttt{Mul(Output=TO)} (multiplication can be done with type \texttt{TO})
+        \item \texttt{TO} has trait \texttt{Div(Output=TO)} (some form of inverse mapping can be done with type \texttt{TO})
+        \item \texttt{TO} has trait \texttt{PartialOrd} (\texttt{TO} has a partial ordering)
+        \item \texttt{TO} has trait \texttt{InfCast(TI)}
+    \end{itemize}
+    
+    \inOpenDPRust{DistanceConstant}{https://github.com/opendp/opendp/blob/main/rust/opendp/src/traits.rs}
+\end{definition}
+
+\begin{definition}[\texttt{Domain}]
+\label{defn:traits-domain}
+A type \texttt{T} has trait \texttt{Domain} $\iffText$ it can represent a set of values that make up a domain. The \texttt{Domain} implementation prescribes a type for members of the domain, as well as a method to check if any instance of that type is a member of that domain.
+\end{definition}
+
+\begin{definition}[\texttt{ExactIntCast}]
+    A type \texttt{TO} has trait \texttt{ExactIntCast(TI)} $\iffText$ Every value of type \texttt{TI} can be \texttt{exact\_int\_cast}ed exactly to a value of type \texttt{TO}, as long as the original value of type \texttt{TI} is no smaller than \texttt{get\_min\_consecutive\_int(TO)} and no larger than \texttt{get\_max\_consecutive\_int(TO)}.
+    
+    A cast error is returned when the value being \texttt{exact\_int\_cast}ed is greater than \texttt{get\_max\_consecutive\_int(TO)} or less than \texttt{get\_min\_consecutive\_int(TO)}.
+\end{definition}
+
+\begin{definition}[\texttt{Float}]
+    Generic trait for floating point numbers. A type \texttt{T} with trait \texttt{Float} automatically implements trait \texttt{Div<Self, Output = Self>}.
+\end{definition}
+
+\begin{definition}[\texttt{ImputableDomain}] 
+Any domain for which the \texttt{ImputableDomain} trait is implemented for it, has 
+\begin{itemize}
+    \item an associated type \texttt{Imputed}. \texttt{VectorDomain::Imputed} is the data type after imputation. 
+    \item an imputation function \texttt{impute\_constant} that replaces a null value with a constant or passes a non-null value through. The pseudocode is \\
+    \texttt{def impute\_constant(x: DA) -> DA::Imputed: \\ return constant if x.is\_null else x}
+    \item  a function \texttt{is\_null} to check if a value is \texttt{null}
+    \item a function \texttt{new} to construct an instance of the domain
+\end{itemize}
+
+\end{definition}
+
+\begin{definition}[\texttt{InfCast}]
+A type \texttt{TO} has trait \texttt{InfCast(TI)} $\iffText$ for every value \texttt{val} of type \texttt{TI}, \texttt{inf\_cast(val:TI,TO)} is defined (note in definition \ref{defn:inf-cast} for \texttt{inf\_cast} that it is acceptable for \texttt{inf\_cast(val:TI,TO)} to return an error).
+
+\emph{Note: the name ``InfCast'' comes from the idea of rounding the result of the cast toward positive \textbf{inf}inity if needed.}
+\end{definition}
+
+\begin{definition}[\texttt{InherentNull}]
+A type \texttt{T} has trait \texttt{InherentNull} $\iffText$ type \texttt{T} can hold some value \texttt{null}.
+
+As of July 16, 2021, only \texttt{f32} and \texttt{f64} have the trait \texttt{InherentNull}.
+\end{definition}
+
+
+\begin{definition}[\texttt{MaxConsecutiveInt}]
+A type $\T$ has trait \texttt{MaxConsecutiveInt} if and only if there is some maximum integer \texttt{i} such that all integers from 0 up to \texttt{i} (inclusive) can be expressed as a value of type $\T$; but such that the next integer that can be expressed by $\T$ is not $\texttt{i}+1$.
+\end{definition}
+
+\begin{definition}[\texttt{MinConsecutiveInt}]
+A type $\T$ has trait \texttt{MinConsecutiveInt} if and only if there is some minimum integer \texttt{i} such that all integers from 0 up to \texttt{i} (inclusive) can be expressed as a value of type $\T$; but such that the next integer that can be expressed by $\T$ is not $\texttt{i}+1$.
+\end{definition}
+
+\begin{definition}[\texttt{Metric}]
+A type \texttt{T} has trait \texttt{Metric} $\iffText$ it can represent a metric for quantifying distances between values in a set. The \texttt{Metric} implementation additionally prescribes the type to use for representing distances.
+\end{definition}
+
+\begin{definition}[\texttt{One}]
+    A type $\T$ has trait \texttt{One} $\iffText$ $\T$ has some multiplicative identity element. A type \texttt{T} with trait \texttt{One} automatically implements trait \texttt{Mul(Output = T)}.
+\end{definition}
+
+\begin{definition}[\texttt{OptionNull}]
+A type \texttt{Option[T]} has trait \texttt{OptionNull} $\iffText$ \texttt{null} can be represented as a value of type \texttt{Option[T].}
+\end{definition}
+
+
+\begin{definition}[\texttt{PartialEq}]
+    A type $\T$ has trait \texttt{PartialEq} $\iffText$ values of type $\T$ have a partial equivalence relation defined on them. A relation $R$ is a partial equivalence relation $\iffText$ for all \texttt{a,b,c} of type $\T$, we have:
+    \begin{itemize}
+        \item \textbf{symmetry:} if \texttt{a}$R$\texttt{b}, then \texttt{b}$R$\texttt{a}.
+        \item \textbf{transitivity:} if \texttt{a}$R$\texttt{b} and \texttt{b}$R$\texttt{c}, then \texttt{a}$R$\texttt{c}
+    \end{itemize}
+    
+    \inRust{Trait std::cmp::PartialEq}{https://doc.rust-lang.org/std/cmp/trait.PartialEq.html}
+\end{definition}
+
+\begin{definition}[\texttt{PartialOrd}]\label{def:partial}
+A type \texttt{T} has trait \texttt{PartialOrd} if for all elements \texttt{a, b, c} of type \texttt{T}, the following properties are satisfied:
+
+%A partial ordering over a data domain is a binary relation $\leq$ such that for all $a, b, c$ in this data domain, the following properties are satisfied.
+    \begin{enumerate}
+        \item \textbf{asymmetry}: if \texttt{a < b} then \texttt{not(a > b)}; likewise, if \texttt{a > b} then \texttt{not(a < b)}
+        
+        \questionr{Is the meaning of ``\texttt{not}'' above clear? In math, the first statement above would be written as ``if $a < b$ then $a \ngtr b$''.}
+        
+        \item \textbf{transitivity}: if \texttt{a < b} and \texttt{b < c}, then \texttt{a < c}; the same holds for \texttt{==} and \texttt{>}.
+    \end{enumerate}
+%The partial ordering relation is denoted by \texttt{PartialOrd}.
+
+\inRust{Trait std::cmp::PartialOrd}{https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html}
+\end{definition}
+
+\begin{definition}[\texttt{SaturatingAdd}]
+    A type \texttt{T} has trait \texttt{SaturatingAdd} if the function \texttt{saturating\_add} (defined in definition \ref{defn:fn-saturating-add}) can be called on values of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{TotalOrd}]
+\label{defn:trait-totalord}
+    \label{defn:totalord}
+    A type \texttt{T} has trait \texttt{TotalOrd} if and only if \texttt{T} has trait \texttt{PartialOrd} and moreover all elements are comparable; that is, for all elements $a, b$ of type \texttt{T}, either $a \leq b$ or $b \leq a$.
+    
+    %A total ordering over a data domain is a partial ordering  in which any two elements are comparable. That is, along with the three properties given in Definition~\ref{def:partial}, one more property must be satisfied: $a \leq b$ or $b \leq a$.
+    
+    %The total ordering relation is denoted by \texttt{TotalOrd}.
+\end{definition}
+
+\begin{definition}[\texttt{Zero}]
+A type $\T$ has trait \texttt{Zero} $\iffText$ $\T$ has some additive identity element. A type \texttt{T} with trait \texttt{Zero} automatically implements trait \texttt{Add(Output = T)}.
+\end{definition}
+
+\subsection{Math-related definitions}
+\begin{definition}[\texttt{Add(Output=T)}]
+    A type \texttt{T} has trait \texttt{Add(Output=T)} $\iffText$ addition can be performed between elements of type \texttt{T}, with the result of the addition also being of type \texttt{T}.
+    
+    \inRust{Trait std::ops::Add}{https://doc.rust-lang.org/std/ops/trait.Add.html}
+
+\end{definition}
+
+\begin{definition}[\texttt{Div(Output=T)}]
+    A type \texttt{T} has trait \texttt{Div(Output=T)} $\iffText$ division can be performed between elements of type \texttt{T}, with the result of the division also being of type \texttt{T}.
+    
+    \inRust{Trait std::ops::Div}{https://doc.rust-lang.org/std/ops/trait.Div.html}
+\end{definition}
+
+\begin{definition}[\texttt{Mul(Output=T)}]
+    A type \texttt{T} has trait \texttt{Mul(Output=T)} $\iffText$ multiplication can be performed between elements of type \texttt{T}, with the result of the multiplication also being of type \texttt{T}.
+    
+    \inRust{Trait std::ops::Mul}{https://doc.rust-lang.org/std/ops/trait.Mul.html}
+\end{definition}
+
+\begin{definition}[\texttt{Sub(Output=T)}]
+\label{defn:trait-sub}
+    A type \texttt{T} has trait \texttt{Sub(Output=T)} $\iffText$ subtraction can be performed between elements of type \texttt{T}, with the result of the subtraction also being of type \texttt{T}.
+    
+    \inRust{Trait std::ops::Sub}{https://doc.rust-lang.org/std/ops/trait.Sub.html}
+\end{definition}
+
+\begin{definition}[\texttt{Sum(Output=T)}]
+    A type \texttt{T} has trait \texttt{Sum(Output=T)} if and only if such type can be created by summing up an iterator. This trait is used to allow the \texttt{sum} function on iterators to be used. Types which implement the trait can be generated by the \texttt{sum()} method.
+    
+    \inRust{Trait std::iter::Sum}{https://doc.rust-lang.org/std/iter/trait.Sum.html}
+\end{definition}
+
+\subsection{Traits that need not appear in the preconditions}
+\begin{itemize}
+    \item \texttt{\textquotesingle static}. Notes: \texttt{\textquotesingle static} is not a type; it is a lifetime name (this is a Rust definition).
+    \item \texttt{Clone}
+    \item \texttt{Copy}
+\end{itemize}
+
+\horizline
+
+\subsection{Notes, todos, questions}
+
+\section{Functions}
+
+\subsection{Functions in the pseudocode language}
+
+\begin{definition}[\texttt{abs}]
+    Given an element \texttt{var} of type \texttt{T}, where \texttt{T} must have trait \texttt{Abs}, the function \texttt{abs} reuturns the absolute value of \texttt{var}.
+\end{definition}
+
+\begin{definition}[\texttt{assert}] 
+    The function \texttt{assert} is followed by an expression. If \texttt{some\_expression} evaluates to \texttt{False}, then \texttt{assert some\_expression} results in an error that prevents the code from proceeding further. 
+    
+    \inPython{\texttt{assert}}{https://docs.python.org/3/reference/simple_stmts.html\#the-assert-statement}
+\end{definition}
+
+\begin{definition}[\texttt{can\_cast}]
+    The function \texttt{can\_cast(type1,type2)} returns $\True$ if and only if no data would be lost by casting from \texttt{type1} to \texttt{type2}. In other words, it returns $\True$ $\iffText$ there is an injection from \texttt{type1} to \texttt{type2}. 
+    
+    \inRust{std::convert::TryFrom}{https://doc.rust-lang.org/std/convert/trait.TryFrom.html}
+\end{definition}
+
+For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u32} can always be expressed as a \texttt{u64}; conversely, \texttt{can\_cast(u64,u32)} will return $\False$ because a \texttt{u64} could be too big to be expressed as a \texttt{u32}, and then data would be lost.
+
+\begin{definition}[\texttt{cast}]
+    \texttt{cast(val:TI, TO)} converts \texttt{val} of type \texttt{TI} to the corresponding \texttt{val} of type \texttt{TO}, and returns \texttt{val} of type \texttt{TO}. Returns an error if the conversion is unsuccessful.
+\end{definition}
+
+\begin{definition}[\texttt{checked\_mul}]
+     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Mul(Output=T)}, \texttt{checked.mul(var1, var2)} returns \texttt{var1*var2} if the result does not overflow, and else returns \texttt{None}.
+\end{definition}
+
+
+\begin{definition}[\texttt{exact\_int\_cast}]
+    This function only works for types \texttt{TO} that have trait \texttt{ExactIntCast(TI)}. For any given \texttt{val} such that \texttt{val} is between \texttt{get\_min\_consecutive\_int(TO)} and \texttt{get\_max\_consecutive\_int(TO)}, then \texttt{exact\_int\_cast(val:TI,TO)} returns an integer value of type \texttt{TO} equal to the integer value held by  \texttt{val} (which was of type \texttt{TI}); otherwise, a cast error is returned.
+\end{definition}
+
+\begin{definition}[\texttt{get\_input\_domain}]
+    The function \texttt{get\_input\_domain(function)} returns the input domain of arguments passed to function \texttt{function}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_input\_metric}]
+    The function \texttt{get\_input\_metric(some\_relation)} returns the input metric used by the relation \texttt{some\_relation}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_max\_consecutive\_int}]
+    This function is only defined on types $\T$ that have trait \texttt{ExactIntCast}. The function \texttt{get\_max\_consecutive\_int(T)} returns the greatest integer $\texttt{i}\geq 0$ such that all integers from 0 up to \texttt{i} (inclusive) can be expressed exactly as a value of type $\T$; but such that $\texttt{i}+1$ cannot be expressed exactly as a value of type $\T$. The return value is of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_max\_value}]
+    This function is only defined on types $\T$ that have a total ordering. The function \texttt{get\_max\_value(T)} returns the maximum value that can be expressed by an object of type \texttt{T}. The return value is of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_min\_consecutive\_int}]
+    This function is only defined on types $\T$ that have trait \texttt{ExactIntCast}. The function \texttt{get\_min\_consecutive\_int(T)} returns the smallest integer $\texttt{i}\leq 0$ such that all integers from 0 down to \texttt{i} (inclusive) can be expressed exactly as a value of type $\T$; but such that $\texttt{i}-1$ cannot be expressed exactly as a value of type $\T$. The return value is of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_min\_value}]
+    This function is only defined on types $\T$ that have a total ordering. The function \texttt{get\_min\_value(T)} returns the minimum value that can be expressed by an object of type \texttt{T}. The return value is of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_output\_domain}]
+    The function \texttt{get\_output\_domain(function)} returns the output domain of values returned by function \texttt{function}.
+\end{definition}
+
+\begin{definition}[\texttt{get\_output\_metric}]
+    The function \texttt{get\_output\_metric(some\_relation)} returns the output metric used by the relation \texttt{some\_relation}.
+\end{definition}
+
+\begin{definition}[\texttt{has\_trait}]
+    The function \texttt{has\_trait(T,(trait1,trait2,...))} is a function that returns $\True$ $\iffText$ the type \texttt{T} implements \texttt{trait1}, \texttt{trait2}, etc.
+\end{definition}
+
+\begin{definition}[\texttt{inf\_cast}]
+\label{defn:inf-cast}
+    This function is only defined for casting to types \texttt{TO} that have trait \texttt{InfCast(TI)}. The function \texttt{inf\_cast(val:TI, TO)} casts \texttt{val} to a value of type \texttt{TO} and returns that value. Specifically, \texttt{val} will be casted to the value of type \texttt{TO} that is closest to \texttt{val} and at least as large as \texttt{val}. If \texttt{inf\_cast} is not able to cast \texttt{val} to a value of type \texttt{TO} at least as large as \texttt{val}, then an error is returned instead.
+    
+    \textbf{Property:} \texttt{inf\_cast}ed distances are never less than input distances.
+    
+    \emph{Note: the name ``InfCast'' comes from the idea of rounding the result of the cast toward positive \textbf{inf}inity if needed.}
+\end{definition}
+
+\begin{definition}[\texttt{is\_instance}]
+    The function \texttt{is\_instance(var,T)} returns $\True$ if and only if the variable \texttt{var} is of type \texttt{T}.
+\end{definition}
+
+\begin{definition}[\texttt{is\_none}]
+    The function \texttt{var.is\_none} returns \texttt{True} if and only if \texttt{var} which is of \texttt{float} is equal to \texttt{None}.
+\end{definition}
+
+\begin{definition}[\texttt{is\_null}]
+    The function \texttt{var.is\_null} returns \texttt{True} if and only if \texttt{var} which is of type \texttt{Option[T]} is not equal to \texttt{null}.
+\end{definition}
+
+\begin{remark}[\texttt{ImputableDomain}]
+To check for nullity, we use \texttt{v.is\_null()} if v is a float, or \texttt{v.is\_none()} if v is an \texttt{Option[T]}. To abstract these functions, we define the \texttt{ImputableDomain} trait to capture both notions of nullity.
+\end{remark}
+
+\begin{definition}[\texttt{len}]
+    The function \texttt{len(vector\_name)} returns the number of elements (with multiplicities) in \texttt{vector} \texttt{vector\_name}. Output is of type \texttt{usize}, so the return value $v$ on 32-bit machines is $v\in \{0,1,2,\ldots,2^{32} - 1\}$; likewise, the return value on 64-bit machines is $v\in \{0,1,2,\ldots,2^{64} - 1\}$. 
+    
+    \inRust{std::vec::Vec::len}{https://doc.rust-lang.org/std/vec/struct.Vec.html\#method.len}
+\end{definition}
+
+\emph{Note: we do not call it \texttt{length} to avoid notational clashes with, for example, the Bounded Sum code.}
+
+\begin{definition}[\texttt{map}]
+    A \texttt{map} applies a given function to all the items in an iterable without using an explicit for loop. Hence, \texttt{map(f, iter)} is an iterator that maps the values of \texttt{iter} with \texttt{f}.
+    
+    \inRust{Struct std::iter::Map}{https://doc.rust-lang.org/std/iter/struct.Map.html}.
+\end{definition}
+
+\begin{definition}[\texttt{max}]
+    The function \texttt{max(var1, var2)} compares \texttt{var1} and \texttt{var2}, and returns the greater of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var2}. The return type of \texttt{map} is also an iterator. The function \texttt{max} requires that \texttt{var1} and \texttt{var2} have trait \texttt{TotalOrd}. 
+    
+    \inRust{std::cmp::max}{https://doc.rust-lang.org/std/cmp/fn.max.html}
+\end{definition}
+
+\begin{definition}[\texttt{min}]
+    The function \texttt{min(var1:T, var2:T)} compares \texttt{var1} and \texttt{var2}, and returns the lesser of the two values. When \texttt{var1} and \texttt{var2} are equivalent, it returns \texttt{var1}. The function \texttt{min} requires that \texttt{var1} and \texttt{var2} have trait \texttt{TotalOrd}. 
+    
+    \inRust{std::cmp::min}{https://doc.rust-lang.org/std/cmp/fn.min.html}
+\end{definition}
+
+\begin{definition}[\texttt{saturating\_add}]
+    \label{defn:fn-saturating-add}
+    Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Add(Output=T)}, the function  \texttt{saturating\_add(var1, var2)} returns \texttt{var1+var2} whenever \texttt{var1+var2} $\in$ \texttt{[get\_min\_value(T), get\_max\_value(T)]}. If \texttt{var1+var2} $<$ \texttt{get\_min\_value(T)}, then \texttt{saturating\_add(var1, var2)} $:=$ \texttt{get\_min\_value(T)}. Similarly, in the case where \texttt{var1+var2} $>$ \texttt{get\_max\_value(T)}, then \texttt{saturating\_add(var1, var2)} $:=$ \texttt{get\_max\_value(T)}. 
+    
+    \inRust{std::intrinsics::saturating\_add}{https://doc.rust-lang.org/std/intrinsics/fn.saturating_add.html}
+\end{definition}
+% i.e., this is clamping
+
+\begin{definition}[\texttt{sum}]
+    The \texttt{sum} function adds all terms in an iterable incrementally and returns their sum.
+    
+    This is done by first summing the first two terms and calculating an intermediate result with the same type as the input type (with rounding if applicable). Then the third term is summed with this result and a new intermediate result is calculated. This process continues until the most recent intermediate result is summed with the final term in the iterable, and the result, with the same type as the input type, is returned.
+\end{definition}
+
+\horizline
+
+\subsection{Notes, todos, questions}
+
+\section{Data structures}
+
+\begin{definition}[\texttt{list}]
+    A \texttt{list} is a data structure which is a changeable ordered sequence of elements.
+\end{definition}
+
+Importantly, we remark that in some occasions in our Python-like pseudocodes we will write \texttt{list} as an equivalent for the Rust \texttt{Vec} in order to maintain a Python-like notation. For this reason, such a \texttt{list} will have type \texttt{Vec(T)} and be considered an element of \texttt{VectorDomain}. We will allow the use of the Rust-like term \texttt{Vec} when type signing the functions in the pseudocode and proving the corresponding domain properties in the proof.
+
+\section{Classes}
+
+\begin{definition}[\texttt{Transformation}]
+    We define a \texttt{Transformation} in the following way.
+    
+    \questionr{Which pseudocode style is preferred for this definition? With preconditions (section \ref{sec:pseudocode-w-preconditions}) or without preconditions (section \ref{sec:pseudocode-wout-preconditions})?}
+    
+\subsection{Pseudocode with preconditions}
+\label{sec:pseudocode-w-preconditions}
+
+\begin{itemize}
+    \item \texttt{input\_domain} must have trait \texttt{Domain}
+    \item \texttt{output\_domain} must have trait \texttt{Domain}
+    \item \texttt{function} must operate on inputs from \texttt{input\_domain}, and it must produce outputs in \texttt{output\_domain}
+    \item \texttt{input\_metric} must have trait \texttt{Metric}
+    \item \texttt{output\_metric} must have trait \texttt{Metric}
+    \item \texttt{stability\_relation} must operate on input metrics equal to \texttt{input\_metric}, and it must operate on output metrics equal to \texttt{output\_metric}
+\end{itemize}
+
+\begin{lstlisting}[language=Python]
+class Transformation:
+    def __init__(self, input_domain, output_domain, function, input_metric, output_metric, stability_relation):
+    	
+        self.input_domain = input_domain
+        self.output_domain = output_domain
+        
+        self.function = function
+        
+        self.input_metric = input_metric
+        self.output_metric = output_metric
+        
+        self.stability_relation = stability_relation
+\end{lstlisting}
+    
+\subsection{Pseudocode without preconditions}
+\label{sec:pseudocode-wout-preconditions}
+\begin{lstlisting}[language=Python]
+class Transformation:
+    def __init__(self, input_domain, output_domain, function, input_metric, output_metric, stability_relation):
+    	
+        assert has_trait(input_domain, Domain)
+        self.input_domain = input_domain
+        assert has_trait(output_domain, Domain)
+        self.output_domain = output_domain
+        
+        assert get_input_domain(function) == input_domain
+        assert get_output_domain(function) == output_domain
+        self.function = function
+        
+        assert has_trait(input_metric, Metric)
+        self.input_metric = input_metric
+        assert has_trait(output_metric, Metric)
+        self.output_metric = output_metric
+        
+        assert get_input_metric(stability_relation) == input_metric
+        assert get_output_metric(stability_relation) == output_metric
+        self.stability_relation = stability_relation
+\end{lstlisting}
+    
+    \inOpenDPRust{Transformation}{https://github.com/opendp/opendp/blob/35dbdc73d7d74e049f5101a704d4e036bed365e8/rust/opendp/src/core.rs\#L369-L376} When we refer to a \textit{valid transformation} in the proofs, this is the precise definition.
+\end{definition}
+
+Therefore, there is no need to include the following code snippet in all of the pseudocodes:
+\begin{lstlisting}[language=Python]
+class Transformation:
+    input_domain
+    output_domain
+    function
+    input_metric
+    output_metric
+    stability_relation 
+\end{lstlisting}
+
+\todonei{Add the equivalent pseudocode for Measurements. (Should be very similar; just change names.)}
 
 \section{Metrics}
-Whenever a metric is defined, this document will contain its mathematical definition. In turn, the document \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"} will include the list of compatible domains, the list of associated types, and the definition of $d$-close under said metric.
-
-%\silvia{Very important to always specify the types and domains when presenting metrics! (remarks from 24/6 Prof. Vadhan's OH) So:}
-
-%\silvia{With that, changed multisets to vectors, but have we made it clear enough that this is how OpenDP is representing multisets? E.g., $u \Delta v$ is the multiset vs $u \Delta v$ is the vector corresponding to... (see below)}
-
-%\silvia{From meeting on July 13: each metric definition must contain its associated type and the list of possible domains it works with. This is not explicitly specified in Rust (i.e., the metric is only a name), but every time we find a transformation / measurement which uses the metric, include the corresponding domain in the definition if it is not there already. It should also include what it means to be $\din$ close under that metric.}
-
-%\connor{Because the Rust type on which a metric operates is covered in the pseudocode definitions, I think we just need to talk mathematically here, like ``symmetric distance is defined on vectors''.}
-
-%\silvia{On July 15 we settled on only writing the mathematical definition in this document, and then writing the Rust list of domains and associated types in the pseudocode definitions document.}
-
-\begin{definition}[Associated type]
-    The associated type of any input metric is the type of the corresponding $\din$. In turn, the associated type of any output metric is the type of the corresponding $\dout$.
-\end{definition}
-
-\begin{remark}
-    Whenever a metric is defined, there is only an associated type, while there are no input/output type. In the OpenDP programming framework, we do not think of metrics as functions in the usual sense; instead, the associated type of distance is the type of the corresponding $\din$ or $\dout$.
-\end{remark}
-
+\label{sec:metrics}
 \subsection{Dataset metrics}
-\subsubsection{Symmetric distance}
+Metrics are used to measure the distances between data. Metrics have a \emph{domain} on which the function associated with the metric can measure distance, and an \emph{associated type} that determines the type used to represent the distance between datasets.
 
-\questionc{What should we do to eliminate one of the two definitons? Should we remove anything else?}
+\textbf{Example:} \texttt{SymmetricDistance} has a domain of \texttt{VectorDomain(AllDomain(T))}, which means that \texttt{SymmetricDistance} can be used to measure the distance between any objects that are vectors of elements of type \texttt{T}. \texttt{SymmetricDistance} has an associated type of \texttt{u32}, which means that a \texttt{u32} value is used to report the distance.
 
-\begin{definition}[Symmetric difference]
-The \textit{symmetric difference} between any two vectors $u, v$, denoted by $\MultiSet(u)\Delta \MultiSet(v)$, corresponds to the multiset representation of elements which are in either $u$ or $v$ but not in their intersection. The multiplicity of each element $x$ in $\MultiSet(u)\Delta \MultiSet(v)$ corresponds to the difference in absolute value of the multiplicities of $x$ in $\MultiSet(u)$ and in $\MultiSet(v)$.
+\note{Once the subdomains have been implemented in OpenDP, it will no longer be necessary to list all of the subdomains in the compatible domains section.}
 
-%\connor{I think we should have an explanation of what is means for an element to be in, for example, $u$ but not in $v$. For example, if we have $u = \MultiSet(0,0,1)$ and $v = \MultiSet(0)$, is $0$ in $v$ or not? We want it to be that ``the first $0$ is in $v$, but the second $0$ is not in $v$'', but I don't think the current definition gets that message across.}
-
-%\todo{Improve this definition}
-\end{definition}
-
-%\todo{Changed my mind after preconditions: better to say symmetric distance than \texttt{SymmetricDistance} (no longer appears in pseudocode)}
-
-%\todo{Still unclear which information should be part of the metric. Mike said on 7/6 not to include the list of possible domains, but then where do we say $u, v$ belong to? Mike also said that he is not sure whether the \texttt{u32} should be part of the definition.}
-
-\begin{example}
-Because a multiset can have repeated elements, for $a = \MultiSet(1,2,1)$ and $b = \MultiSet(1,3)$, we have $a\Delta b = \MultiSet(1,3, 2)$. 
-\end{example}
-
-We introduce the notion of symmetric distance, which differs from symmetric difference in that it is the \emph{cardinality} of the multiset instead of the multiset itself.
-
-\begin{remark}
-    Symmetric \emph{distance} is the metric which is used in the OpenDP library, while the definition for symmetric \emph{difference} is only included for completeness in this document.
-\end{remark}
-
-\begin{remark}[Inspiration for symmetric distance]
-    The notion of \emph{symmetric distance} was inspired by the idea of calculating the cardinality of the symmetric difference between multisets. That is, the symmetric distance between any two (ordered or unordered) lists $u, v$, denoted $d_{Sym}(u,v) = |\MultiSet(u) \Delta \MultiSet(v)|$, can be thought of as the cardinality of the symmetric difference between the multiset interpretations of lists $u$ and $v$. 
-    
-    Because there is a bijection between histograms and multisets, the symmetric distance between vectors $u$ and $v$ can also be thought of as the $L1$ distance between the histograms for $u$ and $v$, denoted $h_u$ and $h_v$, where by abuse of notation, $h_u$ and $h_v$ represent the  (see Definition \ref{defn:histogram}). Then, we equivalently obtain that the symmetric distance between $u$ and $v$ is
-    $$d_{\text{Sym}}(u,v) = \lVert h_{u} - h_{v}\rVert_1 = \sum_{z\in \mathcal{X}} |h_u(z) - h_{v}(z)|.$$
-    
-    The second equality follows from the definition of $L1$ distance (see definition \ref{def:l1-dist}).
-    
-    We now proceed with the definition of symmetric distance, which takes these inspirations and generalizes them.
-\end{remark}
-
-% \begin{definition}[Symmetric distance]
-% The \textit{symmetric distance} between any two (ordered or unordered) lists $u, v$, denoted $d_{Sym}(u,v) = |\MultiSet(u) \Delta \MultiSet(v)|$, is equal to the cardinality of the symmetric difference between the multiset interpretations of lists $u$ and $v$.
-% \end{definition}
-
-% % still working on this paragraph
-% Because there is a bijection between histograms and multisets, we can also define the \emph{symmetric distance} between vectors $u$ and $v$ as the $L1$ distance between the histograms for $u$ and $v$, denoted $h_u$ and $h_v$ (see Definition \ref{defn:histogram}). Then, we equivalently obtain that the symmetric distance between $u$ and $v$ is
-% $$d_{\text{Sym}}(u,v) = \lVert h_{u} - h_{v}\rVert_1 = \sum_{z\in \mathcal{X}} |h_u(z) - h_{v}(z)|.$$
-
-% The second equality follows from the definition of $L1$ distance (see definition \ref{def:l1-dist}).
-
-\begin{definition}[Symmetric distance]
-
-The symmetric distance between two (unordered or ordered) lists $u,v$, with every element in these lists drawn from domain $\mathcal{X}$, is
-
-\begin{equation}
-    d_{Sym}(u,v)=\sum_{z\in \mathcal{X}} |h_u(z)- h_v(z)|.
-\end{equation}
-    
-\end{definition}
-
-\begin{claim}
-Symmetric distance is a metric.
-\end{claim}
-
-Note that null data values are still counted in the symmetric distance. Adding or removing null values still influences the count.
-
-\subsubsection{Substitute distance}
-\begin{definition}[Substitute distance]
-We only define the \emph{substitute distance} $d_{Sym}$ on multisets with the same number of elements. On two multisets $u,v\in \MultiSet(\mathcal{X})$ for some domain $\mathcal{X}$ where $|u| = |v|$, we say that the substitute distance $d_{Subs}(u,v)$ is equal to the cardinality of the relative complement $u \backslash v$, so $d_{Subs}(u,v) = |u\backslash v|$. (This can be thought of as fixing multiset $u$ and finding how many elements in $v$ are not represented in $v$.) \silvia{List of domains? Associated types? It is not in the library, so we cannot answer this -- maybe we should drop it.}
-
-\connor{Substitute distance should have the same domain as symmetric distance since it is defined as half the symmetric distance. Probably the same ``associated type'', too, but I don't think we need to cover that here.}
-
-Alternatively, we can define $d_{Subs}$ as
-
-$$d_{Subs}(u,v) = \frac{1}{2}d_{\text{Sym}}(u,v).$$
-
-Note that this metric is like a generalization of Hamming distance to multisets (recall that Hamming distance is defined on ordered objects). \questionc{Is Hamming distance included in the library again after our discussions on August 12?}
-\end{definition}
-\silvia{I would not define $d_{Subs}$ in terms of $d_{Sym}$; and instead write original definition and then add the 2-factor equality as a claim.}
-\connor{I think they had defined $d_{subs}$ in terms of $d_{sym}$.} \questionc{How is it thought of as in the code? Is it literally ``we calculate the substitute distance, }
-
-\begin{claim}
-Substitute distance is a metric.
-\end{claim}
-
-%\begin{claim}
-%(2 factor of Subs and Sym)
-%\end{claim}
-
-\begin{remark}
-    As of June 24, symmetric distance is a preferred metric over substitute distance. There is a constructor that converts the metric.
-\end{remark}
-
-\subsection{Sensitivity metric}
-\subsubsection{Absolute distance}
-
-\begin{definition}[Absolute distance]\label{def:abs}
-    Given two numbers $n, m$, the absolute distance between $n$ and $m$, denoted by $d_{Abs}$, is defined as $d_{Abs}(n, m)= |n-m|$, where the horizontal bars represent absolute value.
-\end{definition}
-
-The same definition holds for $\dout$.
-
-\begin{claim}
-    Absolute distance is a metric.
-\end{claim}
-
-\subsubsection{L1 distance}
-\begin{definition}
-\label{def:l1-dist}
-    The \textit{L1 distance} between any two vectors $u, v$, denoted by $d_{L1}(u, v)$, is defined as $d_{L1}(u, v) = \sum_{i=0}^n |u_i - v_i|$.
-\end{definition}
-
-\subsubsection{L2 distance}
-\begin{definition}
-    The \textit{L2 distance} between any two vectors $u, v$, denoted by $d_{L2}(u, v)$, is defined as $d_{L2}(u, v) = \sqrt{\sum_{i=0}^n |u_i - v_i|^2}$.
-\end{definition}
-
-More generally, we can define the $L_p$ distance between two vectors.
-
-\subsection{Closeness}
-\begin{definition}[$k$-close]
-For any metric $d$, we say that two elements $u, v$ are $k$-close under $d$ if $d(u, v) \leq k$.
-\end{definition}
-
-For example, in the case of symmetric distance, vectors $u$ and $v$ are $k$-close whenever $d_{Sym}(u, v) = |\textrm{MultiSets}(v) \Delta \textrm{MultiSets}(u)| \leq k$. We remark that the type of $k$ must correspond to the associated type of $d$.
-
-We remark that the notion of $k$-closeness can be defined more generally without relying on metrics and instead only using $\din, \dout$ (e.g., $(\epsilon, \delta)$-DP). If that is the case, it will be defined accordingly.
-
-\horizline
-
-\subsection{Notes, todos, questions}
-
-\todo{Make sure to cite Programming Framework when required.}
-
-\horizline
-
-\subsection{Notes, todos, questions}
-
-\horizline
-
-{\Large\color{red} The definitions in sections 5+ are not used in the most finalized proof documents. Please leave feedback, but note that the correctness of the following sections does not impact the correctness of the proofs that are most finalized.}
-
-\section{Useful lemmas for simplifying proofs}
-
-\subsection{Stability for Randomness}
-
-The following lemma and corollary are used to prove the stability guarantee holds in random transformations like \texttt{make\_impute}. 
-
-\begin{definition}[Coupling]
-Let $R$ and $R'$ be two random variables defined over the probability spaces $S$ and $S'$, respectively. A \emph{coupling} of $R$ and $R'$ is a joint variable $(r, r')$ taking values in the product space $S \times S'$ such that $r$ has the same marginal distribution as $R$ and $r'$ has the same marginal distribution as $R'.$
-\end{definition}
-\grace{Taken from Jayshree's paper on Theil-Sen estimator.}
-
-\begin{lemma}[Stability for Randomness]
-We define a randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$. $\Relation(d_{in}, d_{out}) = True$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close, there exists a coupling $(R, R')$ of the randomness of $f(x)$ and $f(x')$ such that for all $(r, r') \in Support(R, R'),$ $f_r(x)$ is $d_{out}$-close to $f_{r'}(x')$.
-\end{lemma}
-
-\begin{proof}
-\grace{Proof outline:}
+\begin{definition}[\texttt{AbsoluteDistance(T)}]
+\metricDefn{absolute distance}
 \begin{itemize}
-    \item Jayshree's paper shows how to do it for neighboring inputs $x, x'$, then $T$ is c-Lipschitz randomized transformation. More precisely, she says that if $dist(d_0, d_1) = 1$, then $dist(T(d_0), T(d_1)) \leq c$.
-    \item We can generalize for any neighboring inputs: $d_Y(T(d_0), T(d_1)) \leq c \times d_X(d_0, d_1)$. 
-    \item Use the fact that $c$-stable implies Relation($\din, \dout$) = $\dout \geq c \times \din$, $d_X(x, x') \leq \din, d_Y(T(x), T(x')) \leq \dout.$
-    \item Then apply Lemma 2.0.8 Jayshree's paper. Important things to note are that we find the probability distribution, which then shows that there exists a valid coupling of $s_{d_0}, s_{d_l}$. This allows us to conclude by triangle inequality distance between the coupled transformations dist$(\tilde{s}_{d_0}$, $\tilde{s}_{d_l}) \leq c \times l$. Therefore then $T$ is a c-Lipschitz randomized transformation.
-    \item If $T$ is a c-Lipschitz randomized transformation, that means that $f_r(x)$ is $\dout$-close to $f_{r'}(x')$. \grace{Need to flesh out these details.}
+    \item \textbf{Domain:} \texttt{AllDomain(T)}, where \texttt{T} has the traits \texttt{Sub(Output=T)} (defined in definition \ref{defn:trait-sub}) and \texttt{TotalOrd} (defined in definition \ref{defn:trait-totalord}).
+    \item \textbf{Associated type:} \texttt{Q}.
+    \item \textbf{$d$-close:} For any two elements $n, m$ in \texttt{AllDomain(T)}, where \texttt{T} denotes an arbitrary type with trait \texttt{Sub(Output=T)}, and $d$ of generic type \texttt{Q}, we say that $n, m$ are $d$-close under the absolute distance metric (abbreviated as $d_{Abs}$) whenever
+    \[
+        d_{Abs}(n, m) = |n-m| \leq d.
+    \]
 \end{itemize}
-
-The following corollary allows us to fix the random seed in random transformations to prove the stability guarantee.
-\end{proof}
-
-\begin{corollary}
-For randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$, $\Relation(d_{in}, d_{out}) = \texttt{True}$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close and for all fixing of the randomness $r$ of $f$ (fixing seed of PRG), we have that $f_r(x)$ and $f_r(x')$ are $d_{out}$-close.
-\end{corollary}
-
-\subsection{The path property of symmetric distance on sized domains}
-
-\questionc{Given that we are avoiding texttt notation in this document, should we change \texttt{SizedDomain} for a mathematical definition of sized domain in the three lemmas that follow?}
-
-\begin{definition}[$SizedDomain$]
-    $SizedDomain(\mathcal{X},n)$ is the set of all vectors with $n$ (not necessarily unique) elements drawn from domain $\mathcal{X}$.
 \end{definition}
 
-\begin{lemma}[Path property of $d_{Sym}$ on \textit{SizedDomain}]\label{lemma:path1}
-    For any two vectors $v, w \in$ \textit{SizedDomain(D, n)} for some domain $D$ and integer $n$, $d_{Sym}(v,w)$ is an even integer; i.e., $d_{Sym}(v,w) = 2k$ for some integer $k \geq 0$. Moreover, there exist $k$ vectors $v=u^0, u^1, \ldots, u^k=w$ such that $d_{Sym}(u^i,u^{i+1})=2$ for all $i$.
-\end{lemma}
-
-\begin{proof}
-    We will first show that $d_{Sym}(v, w) = 2k$ for some integer $k \geq 0$. Since $v, w \in \textit{SizedDomain(D, n)}$, we know that both $v$ and $w$ have length $n$. Let $v[i], w[i]$ denote the $i$-th element of $v$ and $w$, respectively, for $i \geq 0$. We construct $v', w'$ with the following iterative algorithm \texttt{Alg1}: 
-    \begin{enumerate}
-        \item Set $v' \leftarrow v$ and $w' \leftarrow w$.
-        \item For each index $i \in [0, n-1]$, do:
-        \begin{enumerate}
-            \item (Deleting step.) Delete elements $v'[i]$ and $w'[j]$ if and only if there exists a $j \in [0, n-1]$ such that $v'[i] = w'[j]$.
-        \end{enumerate}
-        \item Return $v'$ and $w'$.
-    \end{enumerate}
-    When \texttt{Alg1} terminates, it must be that $\MultiSet(v') \cap \MultiSet(w') = \emptyset$; otherwise, there would exist an index $i$ such that $v'[i] = w'[j]$ for some $j$, which contradicts step 2 (a) in \texttt{Alg1}. Moreover, at each deleting step of the iterative algorithm, we delete exactly one element of $v'$ and one element of $w'$. Let $k'$ denote the total number of deletion steps. Since by assumption $|\MultiSet(v)| = |\MultiSet(w)| = n$, it follows that
-    \[
-        |\MultiSet(v')| = |\MultiSet(w')| = n-k'.
-    \]
-    Hence, $d_{Sym}(v, w) = 2k$, where $k = n-k'$.
-    
-    Next we prove the second part of the lemma by using the same iterative algorithm. We show by construction how to find the $k$ vectors $v = u^0, u^1, \ldots, u^k = w$ such that $d_{Sym}(u^i, u^{i+1}) = 2 \forall \, i$. Let $D$ denote \silvia{Letter already taken} the vector of indices $j$ (in increasing order) such that $v[j]$ has not been deleted at any stage during the iterative algorithm described above As shown above, we know that $|D| = k$. We now construct the $k$ vectors $u^i$ with the following \texttt{Alg2}:
-    \begin{enumerate}
-        \item Set $u^0 \leftarrow v$.
-        \item For each $i \in [1, k]$, do:
-        \begin{enumerate}
-            \item Set $u^i \leftarrow u^{i-1}$.
-            \item Set $u^i[D[i]] \leftarrow w[D[i]]$.
-        \end{enumerate}
-    \end{enumerate}
-\end{proof}
-We need to prove two claims: that at the end of \texttt{Alg2}, $u^k = w$, and that $d_{Sym}(u^i, u^{i+1}) = 2$ for all $i$. \silvia{Problem of ordering. Needs finishing.}
-
-\silvia{Notation is bad. Maybe change to $v[i]$ to denote $i$-th element of $v$.}
-
-\begin{lemma}\label{lemma:path2}
-    For any two vectors $v, w \in$ \texttt{SizedDomain(D, n)}, $d_{Sym}(v, w) = 2$ if and only if we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$.
-\end{lemma}
-
-\begin{proof}
-    This lemma follows directly form the definition of symmetric distance. We need to prove the two directions of the implication:
-    \begin{enumerate}
-        \item If we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$, then $d_{Sym}(v, w) = 2$: This direction is already shown in the proof of Lemma 4.1.
-        \item If $d_{Sym}(v, w) = 2$, then we can change one element of $v$ to obtain $v'$ such that $\MultiSet(v') = \MultiSet(w)$: By the histogram notation...
-    \end{enumerate}
-\end{proof}
-
-The above lemma follows directly from the definition of symmetric distance. 
-
-\begin{lemma}\label{lemma:path3}
-Given a function $f: \mathcal{X} \rightarrow \mathcal{Y}$ on input domain \texttt{SizedDomain(D, n)}, if $d_{\mathcal{Y}}(f(v), f(w)) \leq c$ for all vectors $v, w \in \texttt{SizedDomain(D, n)}$ such that $d_{Sym}(v, w) = 2$, then $f$ is $c/2$-stable.
-\end{lemma}
-
-\begin{proof}
-    Triangle inequality.
-\end{proof}
-
-By the definition of $c$-stable (Definition~\ref{def:c}), 
-that $f$ is $c/2$-stable is equivalent to stating that for all pairs $v', w'$ in the input domain, the following holds:
-\[
-    d_{\Y}(f(v'), f(w')) \leq c/2 \cdot d_{Sym}(v', w').
-\]
-Also equivalently, this means that the stability relation of $f$ is
-\[
-    \dout \geq c/2 \cdot \din.
-\]
-
-\subsection{The path property: a generalization}
-Shortest path metric on a weighted graph with positive (non-zero) edge weights. 
-
-\begin{lemma}[Generalized path property]
-    \silvia{Generalization of Lemma \ref{lemma:path1}}
-    Given an arbitrary domain-metric pair $(D, d_M)$, we say that $(D, d_M)$ has the path property if there exists a mapping $f: D \rightarrow V$, where $G(V, E)$ denotes a graph with  positive non-zero edge weights and associated shortest path metric $d_G$, such that $\forall v, w \in D$, $d_M(v, w) = d_G(f(v), f(w))$.
-\end{lemma}
-
-\silvia{We can either say ``$(D, M)$ has the path property" or ``a metric on a domain has the path property".}
-
-\silvia{For lemma below, define the equivalent of $d_{Sym}=2$ as the least possible value of $d_M$ or as the distance between two adjacent vertices in the associated graph? Because $\MultiSet$ is specific to $d_{Sym}$. Or change to $d_G(f(v), f(w)) = d_{M_{\min}}$?}
-
-\questionc{Next lemma should work without the path property but I would need a general notion of adjacency; e.g., ``if and only if $v, w$ are adjacent elements". Redundant with $d_{M_{\min}}$? How to generalize the definitions correctly?}
-
-\begin{lemma}
-    \silvia{Generalization of Lemma \ref{lemma:path2}}
-    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, let $d_{M_{\min}}$ be the minimum possible value of $d_M(v, w)$ over of all possible input pairs $v, w \in D$ for $v \neq w$. Then, $\forall v, w \in D$, $d_M(v, w) = d_{M_{\min}}$ if and only if $f(v), f(w)$ are adjacent vertices in $G$.
-    %$v, w$ are adjacent elements in $D$ under metric $d_M$.
-\end{lemma}
-
-We say that two elements $v, w \in D$ are \textit{adjacent} if and only if $d_M(v, w) = d_{M_{\min}}$.
-
-No need to require the path property in Lemma 4.5 above (and hence have a graph) if $v, w$ adjacent $\rightarrow$ $f(v), f(w)$ adjacent.
-
-\silvia{It is important to specify that $d_{M_{\min}}$ is minimal \textit{over $D$.} E.g., adjacent datasets are at $d_{Sym} = 1$ for unbounded domain, but at $d_{Sym} = 2$ for a bounded domain.}
-
-%\questionc{Version 1:}
-%\begin{lemma}
-    %\silvia{Generalization of Lemma 4.3, Version 1.}
-    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, and for any function $f: D \rightarrow \mathcal{Y}$, where domain $\mathcal{Y}$ has associated metric $d_{\mathcal{Y}}$, if $d_{\mathcal{Y}}(f(v), f(w)) \leq c$ for all $v, w \in D$ such that $f(v), f(w)$ are adjacent vertices in $G$, then $f$ is $c/d_{M_{\min}}$-stable.
-%\end{lemma}
-
-%\questionc{Version 2: (the two versions should be equivalent precisely by Lemma 4.5, but I like Version 2 better because it does not need Lemma 4.5}
-\begin{lemma}
-    \silvia{Generalization of Lemma \ref{lemma:path3} %, Version 2.
-    }
-    For any domain-metric pair $(D, d_M)$ with the path property and hence with an associated graph $G(V, E)$, and for any function $f: D \rightarrow \mathcal{Y}$, where domain $\mathcal{Y}$ has associated metric $d_{\mathcal{Y}}$, if $d_{\mathcal{Y}}(f(v), f(w)) \leq c$ for all $v, w \in D$ such that $d_M(u, v) = d_{M_{\min}}$, then $f$ is $c/d_{M_{\min}}$-stable.
-\end{lemma}
-
-How to generalize $d_{Sym} = 2$? There's 3 possibilities ($d_{Sym} \rightarrow d_M$):
+\begin{definition}[\texttt{SymmetricDistance}]
+\metricDefn{symmetric distance} 
 \begin{itemize}
-    \item $d_M(u, v) = d_{M_{\min}}$
-    \item $u,v$ are adjacent elements under metric $d_M$ (does this make any sense?)
-    \item $f(u), f(v)$ are adjacent vertices in $G$ (depends on the specific construction?)
+    \item \textbf{Domains:} \texttt{VectorDomain(inner\_domain)} and \texttt{SizedDomain(VectorDomain(inner\_domain))}, where \texttt{inner\_domain} is any domain.
+    
+    \item \textbf{Associated type:} \texttt{IntDistance}.
+    \item \textbf{$d$-close:} For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and any $d$ of type \texttt{u32}, we say that $u, v$ are $d$-close under the symmetric distance metric (abbreviated as $d_{Sym}$) whenever 
+    \[
+        d_{Sym}(u, v) = |\MultiSet(u) \Delta \MultiSet(v)| \leq d.
+    \]
 \end{itemize}
+\end{definition}
 
-\todo{Here add how the symmetric difference case follows from section 4.1.3 by constructing the graph explicitly.}
+\emph{Note: the associated type of \texttt{SymmetricDistance} is hard-coded as \texttt{IntDistance}, so when declaring that the metric being used is \texttt{SymmetricDistance}, we only need to write \texttt{metric = SymmetricDistance()}; by contrast, we need to write \texttt{AbsoluteDistance(T)} where \texttt{T} is the type on which we are taking the absolute distance since the associated type for \texttt{AbsoluteDistance} is not hard-coded.}
 
+\subsection{Sensitivity metrics}
 
-\section{Measures}
-\subsection{Max divergence}
-\begin{definition}[Max divergence \cite{dr14}]
-    The max divergence between two random variables $Y$ and $Z$ taking values from the same domain is defined to be:
+\note{Sensitivity metrics are used for measurements (rather than transformations), so our most finalized proofs -- which all deal with transformations -- do not require correctness of the definitions in this section.}
+
+\begin{definition}[\texttt{L1Distance}]
+    \metricDefn{L1 distance}
+    \item \textbf{Domain:} \texttt{VectorDomain(inner\_domain))}, where \texttt{inner\_domain} is any domain.
+    \item \textbf{Associated type:} \texttt{Q}.
+    \item \textbf{$d$-close:} For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and $d$ of generic type \texttt{Q}, we say that $u, v$ are $d$-close under the L1 distance metric (abbreviated as $d_{L1}$) whenever
     \[
-        D_{\infty}(Y||Z) = \max_{S \subseteq \textrm{Supp}(Y)} \Big[\ln \dfrac{\Pr[Y \in S]}{\Pr[Z \in S]} \Big].
+        d_{L1}(u, v) = \sum_{i=0}^n |u_i - v_i| \leq d.
     \]
 \end{definition}
 
-\begin{lemma}[\cite{dr14}]
-    A mechanism $\M$ is $\epsilon$-differentially private if and only if on every two neighboring databases $x$ and $y$, $D_{\infty}(\M(x)||\M(y)) \leq \epsilon$ and $D_{\infty}(\M(y)||\M(x)) \leq \epsilon$.
-\end{lemma}
-
-\subsection{Smoothed max divergence}
-\begin{definition}[Smoothed max divergence \cite{dr14}]
-    The smoothed max divergence between $Y$ and $Z$ is defined to be:
+\begin{definition}[\texttt{L2Distance}]
+    \begin{definition}[\texttt{L2Distance}]
+    \metricDefn{L2 distance}
+    \item \textbf{Domain:} \texttt{VectorDomain(inner\_domain))}, where \texttt{inner\_domain} is any domain.
+    \item \textbf{Associated type:} \texttt{Q}.
+    \item \textbf{$d$-close:} For any two vectors $u, v \in \texttt{VectorDomain(D)}$ and $d$ of generic type \texttt{Q}, we say that $u, v$ are $d$-close under the L2 distance metric (abbreviated as $d_{L2}$) whenever
     \[
-        D^{\delta}_{\infty}(Y||Z) = \max_{S \subseteq \textrm{Supp}(Y): \Pr[Y \in S] \geq \delta} \Big[\ln \dfrac{\Pr[Y \in S]-\delta}{\Pr[Z \in S]} \Big].
+        d_{L2}(u, v) = \sqrt{\sum_{i=0}^n |u_i - v_i|^2} \leq d.
     \]
 \end{definition}
-
-\begin{lemma}[\cite{dr14}]
-    A mechanism $\M$ is $(\epsilon, \delta)$-differentially private if and only if on every two neighboring databases $x$ and $y$, $D_{\infty}^{\delta}(\M(x)||\M(y)) \leq \epsilon$ and $D_{\infty}^{\delta}(\M(y)||\M(x)) \leq \epsilon$.
-\end{lemma}
-
-
-\section{Probability distributions}
-\subsection{Laplace distribution}
-\begin{definition}[Laplace distribution \cite{dr14}]
-    The Laplace distribution (centered at 0) with scale $b$ is the distribution with pribability density function
-    \[
-        \Lap(x|b) = \dfrac{1}{2b} \exp \Big(\dfrac{-|x|}{b}\Big).
-    \]
-    The variance of this distribution is $\sigma^2 = 2b^2$. \silvia{Add cumulative def.? Probably not necessary. Discuss anything else we would like to add.}
 \end{definition}
-We write $\Lap(b)$ to denote the Laplace distribution with scale $b$.
 
-\silvia{Connor, Grace: can you add Geometric and Gaussian?}
+\questionr{Are the domain and associated type correct? Are any further traits needed?}
+
+Maybe: include $p$-norms? (See the Wikipedia article at \url{https://en.wikipedia.org/wiki/Norm_(mathematics)\#p-norm} for a definition of $p$-norms.)
+
+\subsection{Measures}
+
+\begin{definition}[\texttt{MaxDivergence}]
+    \metricDefn{max divergence} 
+    \begin{itemize}
+    \item \textbf{Domain:} \texttt{VectorDomain(AllDomain(T))}.
+    
+    \questionr{Is there any trait required of \texttt{T}? Should it be \texttt{VectorDomain(D)} instead?}
+    \item \textbf{Associated type:} \texttt{Q}.
+    \item \textbf{$d$-close:} For any two vectors $u, v$ in \texttt{VectorDomain(AllDomain(T))} and any $d$ of generic type \texttt{Q}, we say that $u, v$ are $d$-close under the max divergence measure (abbreviated as $D_{\infty}$) whenever
+    \[
+        D_{\infty}(u, v) = \max_{S \subseteq \textrm{Supp}(Y)} \Big[\ln \dfrac{\Pr[f(u) \in S]}{\Pr[f(v) \in S]} \Big] \leq d.
+    \]
+    \questionr{Thoughts on this definition? Should $D_{\infty}$ operate on $u,v$ (so $D_{\infty}(u,v)$), or on $f(u),f(v)$ (so $D_{\infty}(f(u),f(v))$)?}
+\end{itemize}
+\end{definition}
 
 \horizline
 
 \subsection{Notes, todos, questions}
 
-\section{Floating point approach}
+\todonei{Need to learn how to cross-reference TeX files. After Prof. Vadhan's comment on 19/7, we should think of a systematic way to do dependency tracking.}
 
-\begin{thebibliography}{99}
+\questionr{With regard to the todo above, any recommendations for how to cross-reference between TeX files?}
 
-\bibitem{dr14}
-Cynthia Dwork and Aaron Roth. The algorithmic foundations of differential privacy. \textit{Found. Trends Theor. Comput. Sci.} 9.3--4 (2014): 211--407.
-
-
-\end{thebibliography}
-
+\section{Code-Definitions update loop}
+List of items that have recently changed in the code and have not yet been implemented, or that we know will be implemented soon:
+\begin{itemize}
+    \item Subdomains for domain-metric compatibility check.
+    \item Renaming: \url{https://github.com/opendp/opendp/issues/181}.
+\end{itemize}
 
 \end{document}
