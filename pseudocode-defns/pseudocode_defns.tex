@@ -90,7 +90,7 @@
 \newcommand{\sfi}{}%{\text{\textcolor{olive}{(Salil's feedback incorporated.)}}}
 \newcommand{\todosfi}{\todo{Add Salil's feedback.}}
 
-\newcommand{\metricDefn}[1]{The definition of \emph{#1} in the ``proof definitions'' document tells how the distance between data is calculated.}
+\newcommand{\metricDefn}[1]{The definition of \emph{#1} in the proof definitions document (see section \ref{sec:versioned-docs}) tells how the distance between data is calculated.}
 
 \newcommand{\inRust}[2]{See \url{#2}.}
 \newcommand{\inOpenDPRust}[2]{In OpenDP (Rust), this is called \texttt{#1}. See \url{#2}.}
@@ -107,21 +107,21 @@
 
 \title{List of definitions used in the pseudocode}
 \author{S\'ilvia Casacuberta, Grace Tian, and Connor Wagaman}
-\date{Summer 2021}
+\date{Summer 2021 \\ Version as of \today~(UTC)}
 
 \begin{document}
 
 \maketitle
 
-We use the following guideline: if a term appears in the preconditions \& pseudocode section of a proof document, then this term is defined in the ``List of definitions used in the pseudocode" document. Otherwise, it appears in the ``List of definitions used in the proofs" document. 
+We use the following guideline: if a term appears in the \texttt{\textbackslash\texttt{texttt\{...\}}} \LaTeX font, then this term is defined in the pseudocode definitions document. Otherwise, it appears in the proof definitions document. 
 
-We maintain the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
+We provide the terms in alphabetical order within each section. ``TODOs'' should be included at the end of the corresponding section. On the other hand, ``TODOs'' which better specify an already-defined term should be included immediately following the definition of that term. Examples should never be part of the definition, but we encourage their use right after the definition of a term.
 
 We also recommend linking to the Rust Standard Library when the term is defined there.
 
 \tableofcontents
 
-\section*{List of terms that have not yet been added}
+\subsection{List of terms that have not yet been added}
 \begin{itemize}
     \item The compatibility pairing and subdomains. Compatibility inheritance for subdomains and proof for subdomain traits. But this is awaiting the specific final implementation.
     \item Clarify why we specify vectors for \texttt{SizedDomain}
@@ -135,6 +135,15 @@ We also recommend linking to the Rust Standard Library when the term is defined 
     \item Add \texttt{IntDistance}, although Mike said to keep using \texttt{u32} in the pseudocode type signing for now.
     \item Definition of the Rust iterator
     \item Do we need \texttt{fold}? Maybe always use loops
+\end{itemize}
+
+\subsection{Versions of definitions documents}
+\label{sec:versioned-docs}
+
+When looking for definitions for terms that appear in this document, the following versions of the definitions documents should be used.
+
+\begin{itemize}
+    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
 
 \section{Types}
@@ -556,7 +565,7 @@ To check for nullity, we use \texttt{v.is\_null()} if v is a float, or \texttt{v
 \begin{definition}[\texttt{map}]
     A \texttt{map} applies a given function to all the items in an iterable without using an explicit for loop. Hence, \texttt{map(f, iter)} is an iterator that maps the values of \texttt{iter} with \texttt{f}.
     
-    \inRust{Struct std::iter::Map}{https://doc.rust-lang.org/std/iter/struct.Map.html}.
+    \inRust{Struct std::iter::Map}{https://doc.rust-lang.org/std/iter/struct.Map.html}
 \end{definition}
 
 \begin{definition}[\texttt{max}]
@@ -678,6 +687,8 @@ class Transformation:
 Metrics are used to measure the distances between data. Metrics have a \emph{domain} on which the function associated with the metric can measure distance, and an \emph{associated type} that determines the type used to represent the distance between datasets.
 
 \textbf{Example:} \texttt{SymmetricDistance} has a domain of \texttt{VectorDomain(AllDomain(T))}, which means that \texttt{SymmetricDistance} can be used to measure the distance between any objects that are vectors of elements of type \texttt{T}. \texttt{SymmetricDistance} has an associated type of \texttt{u32}, which means that a \texttt{u32} value is used to report the distance.
+
+Please refer to the proof definitions document (see section \ref{sec:versioned-docs}) for definitions of the functions referred to by the metrics below.
 
 \note{Once the subdomains have been implemented in OpenDP, it will no longer be necessary to list all of the subdomains in the compatible domains section.}
 
