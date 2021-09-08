@@ -512,35 +512,23 @@ We remark that the notion of $k$-closeness can be defined more generally without
 
 \section{Useful lemmas for simplifying proofs}
 
-\subsection{Stability for Randomness}
+\subsection{Stability for randomness}
 
 The following lemma and corollary are used to prove the stability guarantee holds in random transformations like \texttt{make\_impute}. 
 
 \begin{definition}[Coupling]
-Let $R$ and $R'$ be two random variables defined over the probability spaces $S$ and $S'$, respectively. A \emph{coupling} of $R$ and $R'$ is a joint variable $(r, r')$ taking values in the product space $S \times S'$ such that $r$ has the same marginal distribution as $R$ and $r'$ has the same marginal distribution as $R'.$
+Let $R$ and $R'$ be two random variables defined over the probability spaces $S$ and $S'$, respectively. A \emph{coupling} of $R$ and $R'$ is a joint variable $(r, r')$ taking values in the product space $S \times S'$ such that $r$ has the same marginal distribution as $R$ and $r'$ has the same marginal distribution as $R'$.\cite{ts2020}
 \end{definition}
-\grace{Taken from Jayshree's paper on Theil-Sen estimator.}
 
-\begin{lemma}[Stability for Randomness]
-We define a randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$. $\Relation(d_{in}, d_{out}) = True$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close, there exists a coupling $(R, R')$ of the randomness of $f(x)$ and $f(x')$ such that for all $(r, r') \in Support(R, R'),$ $f_r(x)$ is $d_{out}$-close to $f_{r'}(x')$.
-\end{lemma}
+\begin{definition}[Valid random transformation]
+A \texttt{Transformation(DI, DO, MI, MO, f, Relation)} is valid if for randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$ and  $\Relation(d_{in}, d_{out}) = \texttt{True}$ then for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close, there exists a coupling $(R, R')$ of the randomness of $f(x)$ and $f(x')$ such that for all $(r, r') \in Support(R, R'),$ $f_r(x)$ is $d_{out}$-close to $f_{r'}(x')$.
+\end{definition}
 
-\begin{proof}
-\grace{Proof outline:}
-\begin{itemize}
-    \item Jayshree's paper shows how to do it for neighboring inputs $x, x'$, then $T$ is c-Lipschitz randomized transformation. More precisely, she says that if $dist(d_0, d_1) = 1$, then $dist(T(d_0), T(d_1)) \leq c$.
-    \item We can generalize for any neighboring inputs: $d_Y(T(d_0), T(d_1)) \leq c \times d_X(d_0, d_1)$. 
-    \item Use the fact that $c$-stable implies Relation($\din, \dout$) = $\dout \geq c \times \din$, $d_X(x, x') \leq \din, d_Y(T(x), T(x')) \leq \dout.$
-    \item Then apply Lemma 2.0.8 Jayshree's paper. Important things to note are that we find the probability distribution, which then shows that there exists a valid coupling of $s_{d_0}, s_{d_l}$. This allows us to conclude by triangle inequality distance between the coupled transformations dist$(\tilde{s}_{d_0}$, $\tilde{s}_{d_l}) \leq c \times l$. Therefore then $T$ is a c-Lipschitz randomized transformation.
-    \item If $T$ is a c-Lipschitz randomized transformation, that means that $f_r(x)$ is $\dout$-close to $f_{r'}(x')$. \grace{Need to flesh out these details.}
-\end{itemize}
+We can reconsider as follows. This allows us to fix the random seed in random transformations to prove the stability guarantee.
 
-The following corollary allows us to fix the random seed in random transformations to prove the stability guarantee.
-\end{proof}
-
-\begin{corollary}
+\begin{definition}[Stability relation for random transformation]
 For randomized function $f: \texttt{DI} \rightsquigarrow \texttt{DO}$, $\Relation(d_{in}, d_{out}) = \texttt{True}$ implies that for all $x, x' \in$ \texttt{DI} that are $d_{in}$-close and for all fixing of the randomness $r$ of $f$ (fixing seed of PRG), we have that $f_r(x)$ and $f_r(x')$ are $d_{out}$-close.
-\end{corollary}
+\end{definition}
 
 \subsection{The path property of symmetric distance on sized domains}\label{sec:pathsized}
 
@@ -728,6 +716,9 @@ We write $\Lap(b)$ to denote the Laplace distribution with scale $b$.
 For now, this is summarized in the Overleaf document \url{https://www.overleaf.com/project/611159043230572a988ee69c}.
 
 \begin{thebibliography}{99}
+
+\bibitem{ts2020}
+\url{https://arxiv.org/abs/2007.05157} (2020)
 
 \bibitem{dr14}
 Cynthia Dwork and Aaron Roth. The algorithmic foundations of differential privacy. \textit{Found. Trends Theor. Comput. Sci.} 9.3--4 (2014): 211--407.
