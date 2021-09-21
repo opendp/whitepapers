@@ -92,8 +92,8 @@
 
 
 \title{Privacy Proofs for OpenDP: Bounded Sum with Known $n$}
-\author{S\'ilvia Casacuberta}
-\date{Summer 2021}
+\author{S\'ilvia Casacuberta, Grace Tian, Connor Wagaman}
+\date{Version as of \today~(UTC)}
 
 \begin{document}
 
@@ -101,18 +101,35 @@
 
 \tableofcontents
 
+\section{Versions of definitions documents}
+\label{sec:versioned-docs}
+
+When looking for definitions for terms that appear in this document, the following versions of the definitions documents should be used.
+
+\begin{itemize}
+    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/f8b279ab249934182f306138fa14e6390ddae3e9/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201546/https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{here}).
+    
+    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
+\end{itemize}
+
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
-The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing the bounded sum function with known $n$. This is defined in lines 36-55 of the file \texttt{sum.rs} in the Git repository\footnote{Updated on August 5, 2021.} (\url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/trans/sum.rs#L36-L55}).
+The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing the bounded sum function with known $n$. This is defined in lines 29-49 of the file \texttt{mod.rs} in the Git repository\footnote{Updated on September 20, 2021.} (\url{https://github.com/opendp/opendp/blob/8bbb0fab1da9b86c50235a36d7026189be43b1ab/rust/opendp/src/trans/sum/mod.rs#L29-L49}).
+
+%\begin{figure}[ht]
+    %\includegraphics[width=15cm]{bounded_sum_2.png}
+    %\centering
+    %\label{fig:code}
+%\end{figure}
 
 \begin{figure}[ht]
-    \includegraphics[width=15cm]{bounded_sum_2.png}
+    \includegraphics[width=15cm]{bounded_sum_n_new.png}
     \centering
     \label{fig:code}
 \end{figure}
 
 \subsection{Pseudocode in Python}
-We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found at \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}.
+We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found in Section \ref{sec:versioned-docs}.
 
 \subsubsection*{Preconditions}
 To ensure the correctness of the output, we require the following preconditions:
@@ -121,8 +138,12 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{n} must be of type \texttt{usize}.
-        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd},\footnote{For now, the OpenDP library only implements \texttt{PartialOrd}, but \texttt{TotalOrd} will soon be implemented. Then, \texttt{TotalOrd} will be redundant, since the trait \texttt{TotalOrd} is part of the trait \texttt{DistanceConstant}.} \texttt{CheckedMul}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
-        \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. \questionc{Same question that Connor asked in \texttt{make\_count} -- this is not needed for the proof.}
+        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckedMul}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
+        \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. (Note that this bullet point is not needed in this proof, but it is needed in the code so a hint can be constructed; otherwise a binary search would be needed to construct the hint.)
+        \item Variables \texttt{U} and \texttt{L} must be of type \texttt{T}, and we must have $\texttt{L} \leq \texttt{U}$.
+        \questionc{Is this inequality correct? Should it be, for example, $\leq$? Also, does bounded sum require all $v\in [L,U]$ or $v\in (L,U)$ or something else? }
+        \connor{Changed this from $\texttt{L} < \texttt{U}$ to $\texttt{L} \leq \texttt{U}$, based on the code at \url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/dom.rs\#L95-L96}}
+
 \end{itemize}
 \end{itemize}
 
@@ -135,8 +156,8 @@ To ensure the correctness of the output, we require the following preconditions:
 def MakeBoundedSumN(L: T, U: T, n: usize):
     input_domain = SizedDomain(VectorDomain(IntervalDomain(L, U)), n)
     output_domain = AllDomain(T)
-    input_metric = SymmetricDistance()
-    output_metric = AbsoluteDistance(T)
+    input_metric = SymmetricDistance()|\label{code:symm-dist}|
+    output_metric = AbsoluteDistance(T)|\label{code:abs-dist}|
     
     n_ = exact_int_cast(n, T)
     if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: 
@@ -151,38 +172,60 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
 
-\newpage
+\silvia{There is a naming difference between the code and the pseudocode due to a recent change in the Rust code: old $n$ to new $size$ (but I prefer using $n$ in the proof -- more concise).}
 
 \section{Proof}
 \subsection{Symmetric Distance}
 \begin{theorem}
-    For every setting of the input parameters \texttt{(L, U, n)} to \texttt{MakeBoundedSumN}, the transformation returned by \texttt{MakeBoundedSumN} has the following properties:
+    For every setting of the input parameters \texttt{(L, U, n)} to \texttt{MakeBoundedSumN} such that the given preconditions hold, \texttt{MakeBoundedSumN} raises an exception (at compile time or run time) or returns a valid transformation with the following properties:
     \begin{enumerate}
         \item \textup{(Appropriate output domain).} For every element $v$ in \texttt{input\_domain}, $\function(v)$ is in \texttt{output\_domain}.
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements $v, w$ in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ is of the associated type for \texttt{input\_metric} and $\dout$ is the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements \texttt{v}, \texttt{w} in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ has the associated type for \texttt{input\_metric} and $\dout$ has the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-    \textbf{(Appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this corresponds to showing that for every vector $v$ in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function}$(v)$ belongs to \texttt{AllDomain(T)}.
-    The output correctness follows from the type signature of \texttt{function} as defined in line \ref{line:fn} and from the overflow check done through the \texttt{checked\_mul} function in line \ref{line:max}. The latter ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in line \ref{line:sum}. Otherwise, an exception for potential overflow will be raised, as described in line~\ref{line:max}. The former automatically enforces that \texttt{function(v)} has type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
+    \textbf{(Part 1 -- appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this corresponds to showing that for every vector \texttt{v} in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function(v)} belongs to \texttt{AllDomain(T)}.
     
-    \questionc{Should I say something about the \texttt{exact\_int\_cast} check?}
+    The output correctness follows from the type signature of \texttt{function} as defined in line \ref{line:fn} and from the overflow check done through the \texttt{checked\_mul} function in line \ref{line:max}.
+    
+    \connor{I recommend including a discussion here of the \texttt{exact\_int\_cast}. You should demonstrate that the checked mul thing does the check that we want it to. In doing that demonstration, it is important to show that the number of rows \texttt{n} is not underestimated. The exact\_int\_cast ensures that. \texttt{exact\_int\_cast} is needed to ensure that our checked mul checks the thing we want it to check}
+    
+    The latter ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in line \ref{line:sum}. If overflow can occur, line~\ref{line:max} will raise an exception for potential overflow. The former automatically enforces that \texttt{function(v)} has return type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
+    \smallskip
+    \textbf{(Part 2 -- domain-metric compatibility).} For \texttt{MakeBoundedSumN}, proving this part corresponds to showing that \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)} is compatible with \texttt{SymmetricDistance()} (see line \ref{code:symm-dist}), and that \texttt{AllDomain(T)} is compatible with \texttt{AbsoluteDistance(T)} (see line \ref{code:abs-dist}).
+    The former follows directly from the list of compatible domains in the definition of symmetric distance, as described in the pseudocode definitions document in section \ref{sec:versioned-docs}. The latter follows directly from the list of compatible domains in the definition of absolute distance, as described in the pseudocode definitions document in section \ref{sec:versioned-docs}. 
+    
+    % Flag on the comptaibility of metrics and domains
     
     \smallskip
-    \textbf{(Domain-metric compatibility).} For \texttt{MakeBoundedSumN}, this corresponds to showing that \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)} is compatible with symmetric distance, and that \texttt{AllDomain(T)} is compatible with absolute distance. The latter follows directly from the list of compatible domains in the definition of absolute distance, as described in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}. The former follows from the compatibility of symmetric distance and \texttt{VectorDomain(D)} as stated in the definition of symmetric distance along with the fact that \texttt{SizedDomain(VectorDomain(D))} is a subdomain of \texttt{VectorDomain(D)}. By Theorem 2.1 in \href{https://www.overleaf.com/project/60d215bf90b337ac02200a99}{``List of definitions used in the pseudocode"}, this implies that \texttt{SizedDomain(VectorDomain(D))} is compatible with symmetric distance as well. 
     
-    \silvia{Flag: this is an example of the subdomain issues that we have been discussing during the week of July 19. Hence this paragraph might need some phrasing updates when the compatibility pairing constructor and the subdomain trait are implemented.}
+    \connor{Problem with current stability guarantee. Ideas copied from Slack, so sorry about the formatting.}
     
-    \smallskip
-    \textbf{(Stability guarantee).} Throughout the stability guarantee proof, we can assume that $\function(v)$ and $\function(w)$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
+    \color{teal}
     
-    Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \din \cdot (\U - \texttt{L})/2$. Moreover, $v, w$ are assumed to be $\din$-close. By the definition of the symmetric difference metric, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$.
+    I think if we did ((upper - lower) + 1) / 2, then we'd be in good shape. This is because we want to make sure that our d\_out is big enough (for privacy, it's worse to have d\_out small). Because upper and lower are both ints, the difference will be an int.
 
-    Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult \url{https://www.overleaf.com/project/60d214e390b337703d200982}.}  it follows that
+    Current relation: Assume (U-L) divisible by 2. Then we're good. Now assume (U-L) not divisible by 2. Then \texttt{(U-L)/2} < (U-L)/2, where \texttt{(U-L)/2} is done on a computer. Uh-oh.
+
+    "+1" relation: Assume (U-L) divisible by 2. Then \texttt{((U-L)+1)/2} = (U-L)/2, so we're good. Now assume (U-L) not divisible by 2. Then ((U-L)+1) divisible by 2, so ((U-L)+1)/2 is greater than the true (U-L)/2, so we're good.
+    
+    
+    Another idea is to do something like ``if upper-lower is odd, do the +1 strategy. If it's even, use the original relation''. Not sure if this conditional structure has any implementation-based advantages or disadvantages, but it'll be a tight bound.
+    
+    \color{black}
+    \connor{End of notes about the current stability guarantee.}
+    
+    \silvia{We ended up concluding that the best option is to move the constant to the other side -- namely, $2 \cdot \dout \geq \din \cdot (\texttt{U}-\texttt{L})$}.
+    
+    \textbf{(Part 3 -- stability guarantee).} Throughout the stability guarantee proof, we can assume that $\texttt{function(v)}$ and $\texttt{function(w)}$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
+    
+    Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \din \cdot (\U - \texttt{L})/2$. Moreover, $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$.
+
+    Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
     \[
         d_{Sym}(v, w) = \lVert h_{v} - h_{w}\rVert_1 = \sum_z |h_v(z) - h_w(z)| \leq \din.
     \]
@@ -203,18 +246,18 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
 
 \subsection{First proof: using the path property (adjacent pairs approach)}
 
-To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{\texttt{U-L}}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 4.2 in the document \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. With these three lemmas, which are applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
+To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{\texttt{U-L}}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the document \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. With these three lemmas, which are applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
 \[
 d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq \texttt{U} - \texttt{L}.
 \]
-By Lemma 4.3 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$. Wlog, let this different element be the $k$-th element of $x$ and $y$, where $x_k = \alpha$, $y_k = \beta$ with $\alpha \neq \beta$.\footnote{The first element of a vector is indexed by 0.} Then,
+By Lemma 5.6 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$. Wlog, let this different element be the $k$-th element of $x$ and $y$, where $x_k = \alpha$, $y_k = \beta$ with $\alpha \neq \beta$.\footnote{The first element of a vector is indexed by 0.} Then,
 \[
     d_{Abs}(\texttt{function}(x), \texttt{function}(y)) = |\texttt{function}(x) - \texttt{function}(y)| = 
 \]
 \[
     = \Big|\sum_{i=0}^{\texttt{n}-1}x_i - \sum_{i=0}^{\texttt{n}-1}y_i\Big| = \Big| \sum_{i=0}^{\texttt{n}-1} (x_i - y_i) \Big| = |0 + (x_k - y_k)| = |\alpha - \beta| \leq |\texttt{U-L}| = \texttt{U-L},
 \]
-since \texttt{U} $\geq$ \texttt{L}. Therefore, applying Lemma 4.4 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, it follows that \texttt{function} is $($\texttt{U-L}$)/2$-stable. By definition, this implies that for any $v, w \in$ \texttt{input\_domain},
+since \texttt{U} $\geq$ \texttt{L}. Therefore, applying Lemma 5.7 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, it follows that \texttt{function} is $($\texttt{U-L}$)/2$-stable. By definition, this implies that for any $v, w \in$ \texttt{input\_domain},
 \[
     d_{Abs}(\texttt{function}(v), \texttt{function}(w)) \leq d_{Sym}(v, w) \cdot (\texttt{U-L})/2.
 \]
@@ -224,9 +267,7 @@ Lastly, by Equations~\ref{eq:abs1} and \ref{eq:abs2} this implies that
 \]
 as we want to prove.
 
-\silvia{Flag: this will be updated to the more general notion of path property (through shortest path metric on a graph), but this matches the current version of the proofs document.}
-
-\silvia{Flag: need to account for rounding errors in the stability relation given the non-closure of float addition, as discussed on the week of August 2nd. We are figuring this out.}
+%\silvia{Flag: this will be updated to the more general notion of path property (through shortest path metric on a graph), but this matches the current version of the proofs document.}
 
 \newpage
 
