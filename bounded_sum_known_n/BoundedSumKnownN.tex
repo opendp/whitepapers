@@ -195,7 +195,9 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     \connor{I recommend including a discussion here of the \texttt{exact\_int\_cast}. You should demonstrate that the checked mul thing does the check that we want it to. In doing that demonstration, it is important to show that the number of rows \texttt{n} is not underestimated. The exact\_int\_cast ensures that. \texttt{exact\_int\_cast} is needed to ensure that our checked mul checks the thing we want it to check}
     
     The latter ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in line \ref{line:sum}. If overflow can occur, line~\ref{line:max} will raise an exception for potential overflow. The former automatically enforces that \texttt{function(v)} has return type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
+    
     \smallskip
+    
     \textbf{(Part 2 -- domain-metric compatibility).} For \texttt{MakeBoundedSumN}, proving this part corresponds to showing that \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)} is compatible with \texttt{SymmetricDistance()} (see line \ref{code:symm-dist}), and that \texttt{AllDomain(T)} is compatible with \texttt{AbsoluteDistance(T)} (see line \ref{code:abs-dist}).
     The former follows directly from the list of compatible domains in the definition of symmetric distance, as described in the pseudocode definitions document in section \ref{sec:versioned-docs}. The latter follows directly from the list of compatible domains in the definition of absolute distance, as described in the pseudocode definitions document in section \ref{sec:versioned-docs}. 
     
