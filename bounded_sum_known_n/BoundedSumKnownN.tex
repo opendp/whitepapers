@@ -7,6 +7,12 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{xurl}
+
+%---- added for warning box
+\usepackage{tcolorbox}
+%----- end of "added for warning box"
+
+
 \hypersetup{colorlinks,
     linkcolor=blue,
     citecolor=blue,      
@@ -101,6 +107,16 @@
 
 \tableofcontents
 
+\bigskip
+
+\begin{tcolorbox}
+\begin{warning}[Proof only applies to integer types]
+Please note that this proof only applies for bounded sums calculated on integers. Specifically, the user-specified type \texttt{T} (more details on \texttt{T} can be found in section \ref{sec:pseudocode}) must be an integer type, such as \texttt{u32} or \texttt{i64}.
+
+Other types should be used with caution; for example, we know that the current implementation does not work for floats.
+\end{warning}
+\end{tcolorbox}
+
 \section{Versions of definitions documents}
 \label{sec:versioned-docs}
 
@@ -111,6 +127,20 @@ When looking for definitions for terms that appear in this document, the followi
     
     \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
+
+\section{Current discrepancies between the Rust implementation and the proof}
+
+To guarantee the correctness of the proof, we highlight the discrepancies that this pseudocode and proof have with respect to the actual Rust implementation:
+\begin{itemize}
+    \item The pseudocode implementation makes the necessary checks with \texttt{checked\_mul} to avoid overflow issues when computing the stability relation. 
+    \item The Rust code does not impose the restriction for \texttt{T} to be an integer type. As noted in the initial warning, the current stability relation only guarantees correctness for integer types.
+    \item The Rust code uses the stability relation $\dout \geq \din \cdot (\texttt{U}-\texttt{L})/2$ instead of the relation found in the pseudocode, namely $2\cdot \dout \geq \texttt{inf\_cast}(\din, T)\cdot (\texttt{U}-\texttt{L})$. There is already a PR to resolve this discrepancy: \url{https://github.com/opendp/opendp/pull/315}.
+    \item The Rust code does not include an \texttt{inf\_cast} in the stability relation, which is necessary for type correctness, but there is already a PR that resolves this discrepancy: \url{https://github.com/opendp/opendp/blob/493fe87273adca3294551faa927039b755c1756e/rust/opendp/src/trans/sum/mod.rs#L65-L94}.
+    \item The previous PR also includes the new user-specified type trait \texttt{InfDiv}, which the current pseudocode does not include.
+\end{itemize}
+
+These changes will soon be applied to the Rust code. The pseudocode also uses the variable \texttt{n} instead of Rust's \texttt{size}, which is more conventional for proof writing.
+
 
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
@@ -129,6 +159,7 @@ The current OpenDP library contains the transformation \texttt{make\_bounded\_su
 \end{figure}
 
 \subsection{Pseudocode in Python}
+\label{sec:pseudocode}
 We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found in Section \ref{sec:versioned-docs}.
 
 \subsubsection*{Preconditions}
@@ -138,11 +169,9 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{n} must be of type \texttt{usize}.
-        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckedMul}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
+        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckedMul}, \texttt{CheckNull}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
         \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. (Note that this bullet point is not needed in this proof, but it is needed in the code so a hint can be constructed; otherwise a binary search would be needed to construct the hint.)
         \item Variables \texttt{U} and \texttt{L} must be of type \texttt{T}, and we must have $\texttt{L} \leq \texttt{U}$.
-        \questionc{Is this inequality correct? Should it be, for example, $\leq$? Also, does bounded sum require all $v\in [L,U]$ or $v\in (L,U)$ or something else? }
-        \connor{Changed this from $\texttt{L} < \texttt{U}$ to $\texttt{L} \leq \texttt{U}$, based on the code at \url{https://github.com/opendp/opendp/blob/main/rust/opendp/src/dom.rs\#L95-L96}}
 
 \end{itemize}
 \end{itemize}
@@ -159,20 +188,21 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     input_metric = SymmetricDistance()|\label{code:symm-dist}|
     output_metric = AbsoluteDistance(T)|\label{code:abs-dist}|
     
-    n_ = exact_int_cast(n, T)
+    n_ = exact_int_cast(n, T)|\label{code:exact-int-cast}|
     if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: 
         raise Exception('Potential overflow') |\label{line:max}|
     
     def relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
-        return d_out >= inf_cast(d_in, T) * (U - L) / exact_int_cast(2, T)
+        if checked_mul(2, d_out).is_none or checked_mul(d_in, U-L).is_none
+            or checked_sub(U, L).is_none:
+            raise Exception('Overflow occurs in the stability relation')
+        return 2*d_out >= inf_cast(d_in, T) * (U - L)
     
     def function(data: Vec[T]) -> T: |\label{line:fn}|
         return sum(data) |\label{line:sum}|
     
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
-
-\silvia{There is a naming difference between the code and the pseudocode due to a recent change in the Rust code: old $n$ to new $size$ (but I prefer using $n$ in the proof -- more concise).}
 
 \section{Proof}
 \subsection{Symmetric Distance}
@@ -183,18 +213,22 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
         
         \item \textup{(Domain-metric compatibility).} The domain \texttt{input\_domain} matches one of the possible domains listed in the definition of \texttt{input\_metric}, and likewise \texttt{output\_domain} matches one of the possible domains listed in the definition of \texttt{output\_metric}.
         
-        \item \textup{(Stability guarantee).} For every pair of elements \texttt{v}, \texttt{w} in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ has the associated type for \texttt{input\_metric} and $\dout$ has the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then $\function(v)$, \texttt{function}$(v)$ are $\dout$-close under \texttt{output\_metric}.
+        \item \textup{(Stability guarantee).} For every pair of elements \texttt{v}, \texttt{w} in \texttt{input\_domain} and for every pair $(\din, \dout)$,  where $\din$ has the associated type for \texttt{input\_metric} and $\dout$ has the associated type for \texttt{output\_metric}, if $v,w$ are $\din$-close under \texttt{input\_metric} and $\texttt{relation}(\din, \dout) = \True$, then \texttt{function(v)}, \texttt{function(w)} are $\dout$-close under \texttt{output\_metric}.
     \end{enumerate}
 \end{theorem}
 
 \begin{proof}
-    \textbf{(Part 1 -- appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this corresponds to showing that for every vector \texttt{v} in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function(v)} belongs to \texttt{AllDomain(T)}.
+    \textbf{(Part 1 -- appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this is equivalent to showing that for every vector \texttt{v} in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function(v)} belongs to \texttt{AllDomain(T)}.
     
-    The output correctness follows from the type signature of \texttt{function} as defined in line \ref{line:fn} and from the overflow check done through the \texttt{checked\_mul} function in line \ref{line:max}.
+    The output correctness follows from the overflow check done through the \texttt{checked\_mul} function on line \ref{line:max} and from the type signature of \texttt{function} as defined on line \ref{line:fn}.
     
-    \connor{I recommend including a discussion here of the \texttt{exact\_int\_cast}. You should demonstrate that the checked mul thing does the check that we want it to. In doing that demonstration, it is important to show that the number of rows \texttt{n} is not underestimated. The exact\_int\_cast ensures that. \texttt{exact\_int\_cast} is needed to ensure that our checked mul checks the thing we want it to check}
+    % \connor{I recommend including a discussion here of the \texttt{exact\_int\_cast}. You should demonstrate that the checked mul thing does the check that we want it to. In doing that demonstration, it is important to show that the number of rows \texttt{n} is not underestimated. The exact\_int\_cast ensures that. \texttt{exact\_int\_cast} is needed to ensure that our checked mul checks the thing we want it to check}
     
-    The latter ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in line \ref{line:sum}. If overflow can occur, line~\ref{line:max} will raise an exception for potential overflow. The former automatically enforces that \texttt{function(v)} has return type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
+    % \connor{I will add an explanation of the use of exact\_int\_cast in line \ref{code:exact-int-cast} here.}
+    
+    The check for overflow ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in calculating the return value on line \ref{line:sum}. The check for overflow works in the following way: first, the size of the vector on which we are taking the bounded sum is \texttt{exact\_int\_cast}ed to a value \texttt{n\_} of type \texttt{T} so that we can work with it (if \texttt{n} it cannot be casted exactly -- for example, if \texttt{n} falls outside the range of values representable by type \texttt{T} -- a cast error will be returned; we know that the \texttt{exact\_int\_cast} will work because \texttt{T} has trait \texttt{ExactIntCast(usize)}). Then, we do a \texttt{checked\_mul} that multiplies \texttt{n\_} and \texttt{T}, and which returns \texttt{None} if the result overflows. Because \texttt{checked\_mul(L,n\_)} is the minimum possible sum we could get, and because \texttt{checked\_mul(U,n\_)} is the maximum possible sum we could get, we know that if neither of these cases will result in overflow, then no overflow will occur at any step in our calculation of the final answer. If \texttt{None} is returned by the \texttt{checked\_mul}, indicating that overflow can occur, then line~\ref{line:max} will raise an exception for potential overflow.
+    
+    The type signature on \texttt{function(v)} automatically enforces that \texttt{function(v)} has return type \texttt{T}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
     
     \smallskip
     
@@ -203,6 +237,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     
     % Flag on the comptaibility of metrics and domains
     
+    \iffalse
     \smallskip
     
     \connor{Problem with current stability guarantee. Ideas copied from Slack, so sorry about the formatting.}
@@ -222,12 +257,13 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     \connor{End of notes about the current stability guarantee.}
     
     \silvia{We ended up concluding that the best option is to move the constant to the other side -- namely, $2 \cdot \dout \geq \din \cdot (\texttt{U}-\texttt{L})$}.
+    \fi
     
     \textbf{(Part 3 -- stability guarantee).} Throughout the stability guarantee proof, we can assume that $\texttt{function(v)}$ and $\texttt{function(w)}$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
     
-    Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $\dout \geq \din \cdot (\U - \texttt{L})/2$. Moreover, $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$.
-
-    Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
+    Since by assumption $\Relation(\din, \dout) = \True$, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that $2 \cdot  \dout \geq \texttt{inf\_cast}(\din, \texttt{T})\cdot (U-L)$. This is equivalent to the stability relation $\dout \geq \texttt{inf\_cast}(\din, T)\cdot (U-L)/2$, which is the one we will show in the proof, except that we avoid any possible integer rounding errors by multiplying by 2 instead of dividing. We will also drop the \texttt{inf\_cast} in the rest of the proof, given that it ensures the correct type of $\din$ but does not affect the bounds of the relation. 
+    
+    Moreover, $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$. Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
     \[
         d_{Sym}(v, w) = \lVert h_{v} - h_{w}\rVert_1 = \sum_z |h_v(z) - h_w(z)| \leq \din.
     \]
