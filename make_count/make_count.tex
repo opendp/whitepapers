@@ -95,7 +95,7 @@ August\or September\or October\or November\or December\fi
 \setlength{\parindent}{0.0in}
 \setlength{\parskip}{0.05in}
 \title{Privacy Proofs for OpenDP: MakeCount}
-\author{Connor Wagaman -- wagaman@college.harvard.edu}
+\author{S\'ilvia Casacuberta, Grace Tian, Connor Wagaman -- wagaman@college.harvard.edu}
 \date{Version as of \today~(UTC)}
 
 \usepackage{xcolor}
@@ -190,7 +190,7 @@ Here, we use preconditions to check for traits, and to specify the domains and m
         
     \end{itemize}
     
-    \question{Salil had recommended that examples of types that do and don't work be provided. Should these examples and anti-examples be provided? Should I just say, ``\texttt{u32} has these traits'', or should I provide the description for why it has these traits (as I did above)?}
+    % \question{Salil had recommended that examples of types that do and don't work be provided. Should these examples and anti-examples be provided? Should I just say, ``\texttt{u32} has these traits'', or should I provide the description for why it has these traits (as I did above)?}
 \end{itemize}
 
 \textbf{Postconditions:} a valid \texttt{Transformation} must be returned (i.e. if a \texttt{Transformation} cannot be returned successfully, a runtime error should be returned)
@@ -269,7 +269,7 @@ Every element $\ell \in v$ is drawn from domain $\mathcal{X}$, so summing over a
 
 \end{proof}
 
-\question{I am unsure whether the proof of lemma \ref{lemma:len-sum-equiv} is good. It seems clear to me that $\texttt{len(v)} = \sum_{z\in\mathcal{X}} h_v(z)$, so I had trouble knowing what needs to be written and what doesn't need to be written.}
+% \question{I am unsure whether the proof of lemma \ref{lemma:len-sum-equiv} is good. It seems clear to me that $\texttt{len(v)} = \sum_{z\in\mathcal{X}} h_v(z)$, so I had trouble knowing what needs to be written and what doesn't need to be written.}
 
 \begin{proof} \textbf{(Part 3 -- stability relation).} Here, we consider two inputs: a vector $\texttt{u}$ of elements of type \texttt{TIA}; and a vector $\texttt{v}$ of elements of type \texttt{TIA}. (This \texttt{input\_domain} is specified in the pseudocode in section \ref{sec:python-pseudocode}.) We prove that if $\texttt{stability\_relation}(\din, \dout) = \True$, then \texttt{function(u)}, \texttt{function(v)} are $\dout$-close.
 
