@@ -111,7 +111,7 @@
 
 \begin{tcolorbox}
 \begin{warning}[Proof only applies to integer types]
-Please note that this proof only applies for bounded sums calculated on integers. Specifically, the user-specified type \texttt{T} (more details on \texttt{T} can be found in section \ref{sec:pseudocode}) must be an integer type, such as \texttt{u32} or \texttt{i64}.
+Please note that this proof only applies for bounded sums calculated on integers. Specifically, the user-specified type \texttt{T} (more details on \texttt{T} can be found in Section \ref{sec:pseudocode}) must be an integer type, such as \texttt{u32} or \texttt{i64}.
 
 Other types should be used with caution; for example, we know that the current implementation does not work for floats.
 \end{warning}
@@ -299,7 +299,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     
     % end of trying to rewrite the paragraph above this
     
-    Moreover, note in the statement of theorem \ref{thrm:privacy-proof} that $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in Section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$. Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
+    Moreover, note in the statement of theorem \ref{thrm:privacy-proof} that $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in Section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$. Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in Section \ref{sec:versioned-docs}.} it follows that
     \[
         d_{Sym}(v, w) = \lVert h_{v} - h_{w}\rVert_1 = \sum_z |h_v(z) - h_w(z)| \leq \din.
     \]
@@ -310,12 +310,12 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     
     % start of reorganization
     
-    To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{U-L}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the proof definitions document (linked in section \ref{sec:versioned-docs}). By Lemma 5.7 in the proof definitions document (linked in section \ref{sec:versioned-docs}), which is applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
+    To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{U-L}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the proof definitions document (linked in section \ref{sec:versioned-docs}). By Lemma 5.7 in the proof definitions document (linked in Section \ref{sec:versioned-docs}), which is applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
     \[
     d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq U-L.
     \]
     
-    By Lemma 5.6 from the proof definitions document (linked in section \ref{sec:versioned-docs}), we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$.
+    By Lemma 5.6 from the proof definitions document (linked in Section \ref{sec:versioned-docs}), we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$.
     
     Let $x = (x_1,x_2,\ldots,x_n)$ and $y = (y_1,y_2,\ldots,y_n)$. The fact that we have $d_{Sym}(x, y) = 2$ tells us that there is some vector $z = (z_1,z_2,\ldots,z_n)$ such that, for all $i\neq j$, we have $x_i=z_i$ (and that for $j$, we have $x_j \neq z_j$), and such that $\MultiSet(z)=\MultiSet(y)$. This construction of $z$ gives us the following equalities: $|\sum_i(x_i) - \sum_i(y_i)| = |\sum_i(x_i)-\sum_i(z_i)| = |\sum_i(x_i-z_i)| = |x_j-z_j|$. Because, in a worst-case scenario, the difference between $x_j$ and $z_j$ is the difference between the upper bound $U$ and lower bound $L$, we see that $|x_j-z_j|\leq |U-L| = U-L$ (with the last equality from the fact that $U\geq L$), which is what we wanted to show.
     
