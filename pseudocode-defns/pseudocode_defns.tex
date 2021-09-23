@@ -143,7 +143,7 @@ We also recommend linking to the Rust Standard Library when the term is defined 
 When looking for definitions for terms that appear in this document, the following versions of the definitions documents should be used.
 
 \begin{itemize}
-    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
+    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 23, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/proof-defns/proof-defns/proof_defns.pdf}{this link} (archived \href{https://github.com/opendp/whitepapers/blob/f43bf7056a5fd3b6f7b4bb77d451eafa042fe8f7/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
 
 \section{Types}
@@ -293,8 +293,16 @@ Preliminary theorems:
     A type $\T$ has trait \texttt{Bounded} $\iffText$ $\T$ has some upper bound and some lower bound (some smallest possible value and some largest possible value).
 \end{definition}
 
+\begin{definition}[\texttt{CheckedAdd}]
+    A type \texttt{T} has trait \texttt{CheckedAdd} if it performs subtraction \texttt{checked\_add} that returns \texttt{None} if overflowing/underflowing occurs.
+\end{definition}
+
 \begin{definition}[\texttt{CheckedMul}]
-    A type \texttt{T} has trait \texttt{CheckedMul} if it performs multiplication that returns \texttt{None} if overflowing.
+    A type \texttt{T} has trait \texttt{CheckedMul} if it performs multiplication using \texttt{checked\_mul} that returns \texttt{None} if overflowing/underflowing occurs.
+\end{definition}
+
+\begin{definition}[\texttt{CheckedSub}]
+    A type \texttt{T} has trait \texttt{CheckedSub} if it performs subtraction \texttt{checked\_sub} that returns \texttt{None} if overflowing/underflowing occurs.
 \end{definition}
 
 \begin{definition}[\texttt{DistanceConstant}]
@@ -484,9 +492,18 @@ For example, \texttt{can\_cast(u32,u64)} will return $\True$ because a \texttt{u
     \texttt{cast(val:TI, TO)} converts \texttt{val} of type \texttt{TI} to the corresponding \texttt{val} of type \texttt{TO}, and returns \texttt{val} of type \texttt{TO}. Returns an error if the conversion is unsuccessful.
 \end{definition}
 
-\begin{definition}[\texttt{checked\_mul}]
-     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Mul(Output=T)}, \texttt{checked.mul(var1, var2)} returns \texttt{var1*var2} if the result does not overflow, and else returns \texttt{None}.
+\begin{definition}[\texttt{checked\_add}]
+     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Add(Output=T)}, \texttt{checked\_add(var1, var2)} returns \texttt{var1+var2} if the result does not overflow/underflow, and else returns \texttt{None}.
 \end{definition}
+
+\begin{definition}[\texttt{checked\_mul}]
+     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Mul(Output=T)}, \texttt{checked\_mul(var1, var2)} returns \texttt{var1*var2} if the result does not overflow/underflow, and else returns \texttt{None}.
+\end{definition}
+
+\begin{definition}[\texttt{checked\_sub}]
+     Given two elements \texttt{var1, var2} of type \texttt{T} with trait \texttt{Sub(Output=T)}, \texttt{checked\_sub(var1, var2)} returns \texttt{var1-var2} if the result does not overflow/underflow, and else returns \texttt{None}.
+\end{definition}
+
 
 
 \begin{definition}[\texttt{exact\_int\_cast}]
@@ -628,7 +645,7 @@ Importantly, we remark that in some occasions in our Python-like pseudocodes we 
 \begin{lstlisting}[language=Python]
 class Transformation:
     def __init__(self, input_domain, output_domain, function, input_metric, output_metric, stability_relation):
-    	
+        
         self.input_domain = input_domain
         self.output_domain = output_domain
         
@@ -645,7 +662,7 @@ class Transformation:
 \begin{lstlisting}[language=Python]
 class Transformation:
     def __init__(self, input_domain, output_domain, function, input_metric, output_metric, stability_relation):
-    	
+        
         assert has_trait(input_domain, Domain)
         self.input_domain = input_domain
         assert has_trait(output_domain, Domain)
