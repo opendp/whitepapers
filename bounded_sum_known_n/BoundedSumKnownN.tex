@@ -123,9 +123,9 @@ Other types should be used with caution; for example, we know that the current i
 When looking for definitions for terms that appear in this document, the following versions of the definitions documents should be used.
 
 \begin{itemize}
-    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/f8b279ab249934182f306138fa14e6390ddae3e9/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201546/https://raw.githubusercontent.com/opendp/whitepapers/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{here}).
+    \item \textbf{Pseudocode definitions document:} This proof file uses the version of the pseudocode definitions document available as of September 23, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/pseudocode-defns/pseudocode-defns/pseudocode_defns.pdf}{this link} (archived \href{https://github.com/opendp/whitepapers/blob/cfab535367f592c1242ab880002cc726822506a0/pseudocode-defns/pseudocode_defns.pdf}{here}).
     
-    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 6, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/d4c24e55cc37878634fec0b7f5c89259a3ad3ded/proof-defns/proof_defns.pdf}{this link} (archived \href{https://web.archive.org/web/20210906201056/https://raw.githubusercontent.com/opendp/whitepapers/proof-defns/proof-defns/proof_defns.pdf}{here}). 
+    \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 23, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/proof-defns/proof-defns/proof_defns.pdf}{this link} (archived \href{https://github.com/opendp/whitepapers/blob/f43bf7056a5fd3b6f7b4bb77d451eafa042fe8f7/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
 
 \section{Current discrepancies between the Rust implementation and the proof}
@@ -170,7 +170,7 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{n} must be of type \texttt{usize}.
-        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckNull}, \texttt{CheckedMul},  \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
+        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckNull}, \texttt{CheckedMul}, \texttt{CheckedSub}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
         \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. (Note that this bullet point is not needed in this proof, but it is needed in the code so a hint can be constructed; otherwise a binary search would be needed to construct the hint.)
         \item Variables \texttt{U} and \texttt{L} must be of type \texttt{T}, and we must have $\texttt{L} \leq \texttt{U}$.
 
