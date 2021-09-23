@@ -134,7 +134,7 @@ To guarantee the correctness of the proof, we highlight the discrepancies that t
 \begin{itemize}
     \item The pseudocode implementation makes the necessary checks with \texttt{checked\_mul} to avoid overflow issues when computing the stability relation. 
     \item The Rust code does not impose the restriction for \texttt{T} to be an integer type. As noted in the initial warning, the current stability relation only guarantees correctness for integer types.
-    \item The Rust code uses the stability relation $\dout \geq \din \cdot (\texttt{U}-\texttt{L})/2$ instead of the relation found in the pseudocode, namely $2\cdot \dout \geq \texttt{inf\_cast}(\din, T)\cdot (\texttt{U}-\texttt{L})$. There is already a PR to resolve this discrepancy: \url{https://github.com/opendp/opendp/pull/315}.
+    \item The Rust code uses the stability relation $\dout \geq \din \cdot (\texttt{U}-\texttt{L})/2$ instead of the relation found in the pseudocode, namely $2\cdot \dout \geq \texttt{inf\_cast}(\din, \texttt{T})\cdot (\texttt{U}-\texttt{L})$. There is already a PR to resolve this discrepancy: \url{https://github.com/opendp/opendp/pull/315}.
     \item The Rust code does not check for possible overflow errors when performing the arithmetic operation $\texttt{U}-\texttt{L}$, whereas the current pseudocode includes a \texttt{checked\_sub} for it.
     \item The Rust code does not include an \texttt{inf\_cast} in the stability relation, which is necessary for type correctness, but there is already a PR that resolves this discrepancy: \url{https://github.com/opendp/opendp/blob/493fe87273adca3294551faa927039b755c1756e/rust/opendp/src/trans/sum/mod.rs#L65-L94}.
     \item The previous PR also includes the new user-specified type trait \texttt{InfDiv}, which the current pseudocode does not include.
@@ -170,7 +170,7 @@ To ensure the correctness of the output, we require the following preconditions:
     \item \textbf{User-specified types:}
     \begin{itemize}
         \item Variable \texttt{n} must be of type \texttt{usize}.
-        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckedMul}, \texttt{CheckNull}, \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
+        \item Type \texttt{T} must have traits \texttt{DistanceConstant(IntDistance)}, \texttt{TotalOrd}, \texttt{CheckNull}, \texttt{CheckedMul},  \texttt{Sum(Output=T)}, \texttt{Sub(Output=T)},  and \texttt{ExactIntCast(usize)}.
         \item \texttt{IntDistance} must have trait \texttt{InfCast(T)}. (Note that this bullet point is not needed in this proof, but it is needed in the code so a hint can be constructed; otherwise a binary search would be needed to construct the hint.)
         \item Variables \texttt{U} and \texttt{L} must be of type \texttt{T}, and we must have $\texttt{L} \leq \texttt{U}$.
 
@@ -190,7 +190,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     output_metric = AbsoluteDistance(T)|\label{code:abs-dist}|
     
     n_ = exact_int_cast(n, T)|\label{code:exact-int-cast}|
-    if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: 
+    if checked_mul(L, n_).is_none or checked_mul(U, n_).is_none: |\label{code:no-overflow-sum}|
         raise Exception('Potential overflow') |\label{line:max}|
     
     def relation(d_in: u32, d_out: T) -> bool: |\label{line:rel}|
@@ -221,7 +221,7 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
 \end{theorem}
 
 \begin{proof}
-    \textbf{(Part 1 -- appropriate output domain).} In the case of \texttt{MakeBoundedSumN}, this is equivalent to showing that for every vector \texttt{v} in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function(v)} belongs to \texttt{AllDomain(T)}.
+    \textbf{(Part 1 -- appropriate output domain).} For \texttt{MakeBoundedSumN}, this is corresponds to showing that for every vector \texttt{v} in \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)}, where \texttt{L} and \texttt{U} have type \texttt{T}, \texttt{function(v)} belongs to \texttt{AllDomain(T)}.
     
     The output correctness follows from the overflow check done through the \texttt{checked\_mul} function on line \ref{line:max} and from the type signature of \texttt{function} as defined on line \ref{line:fn}.
     
@@ -232,42 +232,45 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     The check for overflow ensures that \texttt{function(v)} is contained within the interval \texttt{[get\_min\_value(T), get\_max\_value(T)]}, and hence prevents any overflow from occurring in calculating the return value on line \ref{line:sum}. The check for overflow works in the following way: first, the size of the vector on which we are taking the bounded sum is \texttt{exact\_int\_cast}ed to a value \texttt{n\_} of type \texttt{T} so that we can work with it (if \texttt{n} it cannot be casted exactly -- for example, if \texttt{n} falls outside the range of values representable by type \texttt{T} -- a cast error will be returned; we know that the \texttt{exact\_int\_cast} will work because \texttt{T} has trait \texttt{ExactIntCast(usize)}). Then, we do a \texttt{checked\_mul} that multiplies \texttt{n\_} and \texttt{L}, and which returns \texttt{None} if the result overflows. Because \texttt{checked\_mul(L,n\_)} is the minimum possible sum we could get, and because \texttt{checked\_mul(U,n\_)} is the maximum possible sum we could get, we know that if neither of these cases will result in overflow, then no overflow will occur at any step in our calculation of the final answer. If \texttt{None} is returned by the \texttt{checked\_mul}, indicating that overflow can occur, then line~\ref{line:max} will raise an exception for potential overflow.
     
     The type signature on \texttt{function(v)} automatically enforces that \texttt{function(v)} has return type \texttt{T} and hence is in \texttt{AllDomain(T)}, which is set on line \ref{code:output-domain} as the \texttt{output\_domain}. Since the Rust code successfully compiles, by the type signature the appropriate output domain property must hold. Otherwise, the code will raise an exception for incorrect input type.
+    \end{proof}
     
-    \smallskip
-    
+    \begin{proof}
     \textbf{(Part 2 -- domain-metric compatibility).} For \texttt{MakeBoundedSumN}, proving this part corresponds to showing that \texttt{SizedDomain(VectorDomain(IntervalDomain (L, U)), n)} is compatible with \texttt{SymmetricDistance()} (see line \ref{code:symm-dist}), and that \texttt{AllDomain(T)} is compatible with \texttt{AbsoluteDistance(T)} (see line \ref{code:abs-dist}).
     The former follows directly from the list of compatible domains in the definition of symmetric distance, as described in the pseudocode definitions document in Section \ref{sec:versioned-docs}. The latter follows directly from the list of compatible domains in the definition of absolute distance, as described in the pseudocode definitions document in Section \ref{sec:versioned-docs}. 
+    \end{proof}
+    
     
     % Flag on the comptaibility of metrics and domains
     
-    \iffalse
-    \smallskip
+    % \iffalse
+    % \smallskip
     
-    \connor{Problem with current stability guarantee. Ideas copied from Slack, so sorry about the formatting.}
+    % \connor{Problem with current stability guarantee. Ideas copied from Slack, so sorry about the formatting.}
     
-    \color{teal}
+    % \color{teal}
     
-    I think if we did ((upper - lower) + 1) / 2, then we'd be in good shape. This is because we want to make sure that our d\_out is big enough (for privacy, it's worse to have d\_out small). Because upper and lower are both ints, the difference will be an int.
+    % I think if we did ((upper - lower) + 1) / 2, then we'd be in good shape. This is because we want to make sure that our d\_out is big enough (for privacy, it's worse to have d\_out small). Because upper and lower are both ints, the difference will be an int.
 
-    Current relation: Assume (U-L) divisible by 2. Then we're good. Now assume (U-L) not divisible by 2. Then \texttt{(U-L)/2} < (U-L)/2, where \texttt{(U-L)/2} is done on a computer. Uh-oh.
+    % Current relation: Assume (U-L) divisible by 2. Then we're good. Now assume (U-L) not divisible by 2. Then \texttt{(U-L)/2} < (U-L)/2, where \texttt{(U-L)/2} is done on a computer. Uh-oh.
 
-    "+1" relation: Assume (U-L) divisible by 2. Then \texttt{((U-L)+1)/2} = (U-L)/2, so we're good. Now assume (U-L) not divisible by 2. Then ((U-L)+1) divisible by 2, so ((U-L)+1)/2 is greater than the true (U-L)/2, so we're good.
+    % "+1" relation: Assume (U-L) divisible by 2. Then \texttt{((U-L)+1)/2} = (U-L)/2, so we're good. Now assume (U-L) not divisible by 2. Then ((U-L)+1) divisible by 2, so ((U-L)+1)/2 is greater than the true (U-L)/2, so we're good.
     
     
-    Another idea is to do something like ``if upper-lower is odd, do the +1 strategy. If it's even, use the original relation''. Not sure if this conditional structure has any implementation-based advantages or disadvantages, but it'll be a tight bound.
+    % Another idea is to do something like ``if upper-lower is odd, do the +1 strategy. If it's even, use the original relation''. Not sure if this conditional structure has any implementation-based advantages or disadvantages, but it'll be a tight bound.
     
-    \color{black}
-    \connor{End of notes about the current stability guarantee.}
+    % \color{black}
+    % \connor{End of notes about the current stability guarantee.}
     
-    \silvia{We ended up concluding that the best option is to move the constant to the other side -- namely, $2 \cdot \dout \geq \din \cdot (\texttt{U}-\texttt{L})$}.
-    \fi
+    % \silvia{We ended up concluding that the best option is to move the constant to the other side -- namely, $2 \cdot \dout \geq \din \cdot (\texttt{U}-\texttt{L})$}.
+    % \fi
     
-    \textbf{(Part 3 -- stability guarantee).} We begin with a lemma.
+    Before beginning the proof of the third part of theorem \ref{thrm:privacy-proof}, we provide a lemma.
     
     \begin{lemma}[Pseudocode guarantee to arithmetic guarantee]
     \label{lemma:pseudo-to-arith}
-    If \texttt{2*d\_out >= inf\_cast(d\_in, T)*(U-L)}, then, when performing true arithmetic, $\dout \geq \din * (U-L)/2$.
+    Whenever \texttt{2*d\_out >= inf\_cast(d\_in, T)*(U-L)} holds, then, when performing true arithmetic, $\dout \geq \din * (U-L)/2$ also holds.
     \end{lemma}
+    
     
     \begin{proof}
     Assume that we have $\texttt{2*d\_out >= inf\_cast(d\_in, T)*(U-L)}$. Note that our checked arithmetic operations in lines \ref{code:checked-arith-1} and \ref{code:checked-arith-2} have the effect of enforcing that $\texttt{(U-L)} = (U-L)$. The operation \texttt{inf\_cast(d\_in,T)} has the property that $\texttt{inf\_cast(d\_in,T)} \geq \texttt{d\_in}$. The checked arithmetic also ensures that \texttt{inf\_cast(d\_in,T)*(U-L)} is exact, so we have the guarantee that $\texttt{inf\_cast(d\_in,T)*(U-L)}\geq \din*(U-L)$. The checked arithmetic also ensures that \texttt{2*d\_out} does not overflow, which has the effect of ensuring that $\texttt{2*d\_out} = 2*\dout$.
@@ -275,34 +278,56 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     Therefore, we have $\texttt{2*d\_out} = 2*\dout \geq \texttt{inf\_cast(d\_in,T)*(U-L)}\geq \din*(U-L)$, so we have $2*\dout\geq \din*(U-L)$. We now divide both sides by 2; since we are working with true arithmetic now, the inequality $\dout\geq \din*(U-L)/2$ is clearly true under our assumption that $\texttt{2*d\_out >= inf\_cast(d\_in, T)*(U-L)}$. This completes our proof that, if $\texttt{2*d\_out >= inf\_cast(d\_in, T)*(U-L)}$, then $\dout \geq \din * (U-L)/2$.
     \end{proof}
     
+    \begin{proof}
+    \textbf{(Part 3 -- stability guarantee).} 
     Throughout the stability guarantee proof, we can assume that $\texttt{function(v)}$ and $\texttt{function(w)}$ are in the correct output domain, by the \textit{appropriate output domain property} shown above. 
+    
+    % \textbf{}
     
     % Since by assumption \texttt{relation(d\_in, d\_out) = True}, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that \texttt{2 *  d\_out >= inf\_cast(d\_in, T) * (U-L)}. This is equivalent to the stability relation $\dout \geq \texttt{inf\_cast}(\din, T)\cdot (U-L)/2$, which is the one we will show in the proof, except that we avoid any possible integer rounding errors by multiplying by 2 instead of dividing. We will also drop the \texttt{inf\_cast} in the rest of the proof, given that it ensures the correct type of $\din$ but does not affect the bounds of the relation. 
 
     % trying to rewrite the paragraph above this
     
-    Since by assumption \texttt{relation(d\_in, d\_out) = True}, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that \texttt{2 *  d\_out >= inf\_cast(d\_in, T) * (U-L)}. Therefore, by lemma \ref{lemma:pseudo-to-arith}, we also have that $\dout \geq \din * (U-L)/2$.
+    Since by assumption \texttt{relation(d\_in, d\_out) = True}, by the \texttt{MakeBoundedSumN} stability relation (as defined in line~\ref{line:rel} in the pseudocode), we have that \texttt{2 *  d\_out >= inf\_cast(d\_in, T) * (U-L)}. Therefore, by Lemma \ref{lemma:pseudo-to-arith}, we also have that $\dout \geq \din * (U-L)/2$.
     
     
     % We show that, if we prove that 
     % This is equivalent to the stability relation $\dout \geq \texttt{inf\_cast}(\din, T)\cdot (U-L)/2$, which is the one we will show in the proof, except that we avoid any possible integer rounding errors by multiplying by 2 instead of dividing. We will also drop the \texttt{inf\_cast} in the rest of the proof, given that it ensures the correct type of $\din$ but does not affect the bounds of the relation. 
     
-    We now show that, if $\dout \geq \din * (U-L)/2$, then \texttt{function(v)}, \texttt{function(w)} are $\dout$-close under \texttt{output\_metric}.
+    We now show that, if $\dout \geq \din * (\texttt{U}-\texttt{L})/2$, then \texttt{function(v)}, \texttt{function(w)} are $\dout$-close under \texttt{output\_metric}.
 
     
     % end of trying to rewrite the paragraph above this
     
-    Moreover, note in the statement of theorem \ref{thrm:privacy-proof} that $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$. Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
+    Moreover, note in the statement of theorem \ref{thrm:privacy-proof} that $\texttt{v}, \texttt{w}$ are assumed to be $\din$-close. By the definition of the symmetric distance metric in the proof definitions document linked in Section \ref{sec:versioned-docs}, this is equivalent to stating that $d_{Sym}(v, w) = |\MultiSet(v) \Delta \MultiSet(w)| \leq \din$. Further, applying the histogram notation,\footnote{Note that there is a bijection between multisets and histograms, which is why the proof can be carried out with either notion. For further details, please consult the proof definitions document in section \ref{sec:versioned-docs}.} it follows that
     \[
         d_{Sym}(v, w) = \lVert h_{v} - h_{w}\rVert_1 = \sum_z |h_v(z) - h_w(z)| \leq \din.
     \]
-    We want to show that
+    We now want to show that
     \[
-        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{\texttt{U-L}}{2}.
+        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{U-L}{2}.
     \]
-    This would imply that
+    
+    % start of reorganization
+    
+    To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{U-L}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the proof definitions document (linked in section \ref{sec:versioned-docs}). By Lemma 5.7 in the proof definitions document (linked in section \ref{sec:versioned-docs}), which is applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
+    \[
+    d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq U-L.
+    \]
+    
+    By Lemma 5.6 from the proof definitions document (linked in section \ref{sec:versioned-docs}), we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$.
+    
+    Let $x = (x_1,x_2,\ldots,x_n)$ and $y = (y_1,y_2,\ldots,y_n)$. The fact that we have $d_{Sym}(x, y) = 2$ tells us that there is some vector $z = (z_1,z_2,\ldots,z_n)$ such that, for all $i\neq j$, we have $x_i=z_i$ (and that for $j$, we have $x_j \neq z_j$), and such that $\MultiSet(z)=\MultiSet(y)$. This construction of $z$ gives us the following equalities: $|\sum_i(x_i) - \sum_i(y_i)| = |\sum_i(x_i)-\sum_i(z_i)| = |\sum_i(x_i-z_i)| = |x_j-z_j|$. Because, in a worst-case scenario, the difference between $x_j$ and $z_j$ is the difference between the upper bound $U$ and lower bound $L$, we see that $|x_j-z_j|\leq |U-L| = U-L$ (with the last equality from the fact that $U\geq L$), which is what we wanted to show.
+    
+    (Note that line \ref{code:no-overflow-sum} prevents overflow from occurring in our calculation of the \texttt{sum} of a vector, and that working with data of an integer type means that we will not experience rounding at any point in our calculation of the \texttt{sum} of a vector. This has the effect that, for all vectors \texttt{v}, we will have $\texttt{sum(v)} = \sum_i(\texttt{v}_i)$.)
+    
+    
+    % end of reorganization
+    
+    
+    The fact that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{U-L}{2}$ implies that
     \begin{equation}\label{eq:abs1}
-        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{\texttt{U-L}}{2} \leq \din \cdot \dfrac{\texttt{U-L}}{2},
+        d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \dfrac{U-L}{2} \leq \din \cdot \dfrac{U-L}{2},
     \end{equation}
     and by the stability relation this will imply that
     \begin{equation}\label{eq:abs2}
@@ -311,20 +336,30 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     as we want to see. 
 \end{proof}
 
-\subsection{First proof: using the path property (adjacent pairs approach)}
+% \textbf{Using the path property (adjacent pairs approach)}
 
-To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{\texttt{U-L}}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the document \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}. By lemma 5.7 in the proof definitions document (linked in section \ref{sec:versioned-docs}), which is applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
-\[
-d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq \texttt{U} - \texttt{L}.
-\]
-By Lemma 5.6 from \href{https://www.overleaf.com/project/60d214e390b337703d200982}{``List of definitions used in the proofs"}, we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$. Wlog, let this different element be the $k$-th element of $x$ and $y$, where $x_k = \alpha$, $y_k = \beta$ with $\alpha \neq \beta$.\footnote{The first element of a vector is indexed by 0.} Then,
-\[
-    d_{Abs}(\texttt{function}(x), \texttt{function}(y)) = |\texttt{function}(x) - \texttt{function}(y)| = 
-\]
-\[
-    = \Big|\sum_{i=0}^{\texttt{n}-1}x_i - \sum_{i=0}^{\texttt{n}-1}y_i\Big| = \Big| \sum_{i=0}^{\texttt{n}-1} (x_i - y_i) \Big| = |0 + (x_k - y_k)| = |\alpha - \beta| \leq |\texttt{U-L}| = \texttt{U-L},
-\]
-since \texttt{U} $\geq$ \texttt{L}.
+% To show that $d_{Abs}(\function(v), \function(w)) \leq d_{Sym}(v, w) \cdot \frac{\texttt{U-L}}{2}$, we will use the three lemmas described in the section ``The path property of symmetric distance on sized domains" from Section 5.2 in the proof definitions document (linked in section \ref{sec:versioned-docs}). By Lemma 5.7 in the proof definitions document (linked in section \ref{sec:versioned-docs}), which is applicable to \texttt{MakeBoundedSumN} because \texttt{input\_domain} is a a sized domain and \texttt{input\_metric} is symmetric distance, it suffices to show the following: For all vectors $x, y \in$ \texttt{input\_domain} such that $d_{Sym}(x, y) = 2$, it follows that 
+% \[
+% d_{Abs}(\texttt{function}(x), \texttt{function}(y)) \leq \texttt{U} - \texttt{L}.
+% \]
+% By Lemma 5.6 from the proof definitions document (linked in section \ref{sec:versioned-docs}), we know that vectors $x, y$ only differ on one element, given that, by assumption, $d_{Sym}(x, y) = 2$.
+
+% Let $x = (x_1,x_2,\ldots,x_n)$ and $y = (y_1,y_2,\ldots,y_n)$. The fact that we have $d_{Sym}(x, y) = 2$ tells us that there is some vector $z = (z_1,z_2,\ldots,z_n)$ such that, for all $i\neq j$, we have $x_i=z_i$ (and that for $j$, we have $x_j \neq z_j$), and such that $\MultiSet(z)=\MultiSet(y)$. This construction of $z$ gives us the following equalities: $|\sum_i(x_i) - \sum_i(y_i)| = |\sum_i(x_i)-\sum_i(z_i)| = |\sum_i(x_i-z_i)| = |x_j-z_j|$. Because, in a worst-case scenario, the difference between $x_j$ and $z_j$ is the difference between the upper bound $\texttt{U}$ and lower bound $\texttt{L}$, we see that $|x_j-z_j|\leq |\texttt{U}-\texttt{L}| = \texttt{U}-\texttt{L}$ (with the last equality from the fact that $\texttt{U}\geq \texttt{L}$), which is what we wanted to show.
+
+% Finally, we remark that line \ref{code:no-overflow-sum} prevents overflow from occurring in our calculation of the \texttt{sum} of a vector, and that working with data of an integer type means that we will not experience rounding at any point in our calculation of the \texttt{sum} of a vector. As a result, for all vectors \texttt{v}, we will have $\texttt{sum(v)} = \sum_i(\texttt{v}_i)$.
+
+
+% Wlog, let this different element be the $k$-th element of $x$ and $y$, where $x_k = \alpha$, $y_k = \beta$ with $\alpha \neq \beta$.\footnote{The first element of a vector is indexed by 0.} Then,
+% \[
+%     d_{Abs}(\texttt{function}(x), \texttt{function}(y)) = |\texttt{function}(x) - \texttt{function}(y)| = 
+% \]
+% \[
+%     = \Big|\sum_{i=0}^{\texttt{n}-1}x_i - \sum_{i=0}^{\texttt{n}-1}y_i\Big| = 
+%     \Big|\sum_{i=0}^{\texttt{n}-1}x_i - \sum_{i=0}^{\texttt{n}-1}z_i\Big| = \Big| \sum_{i=0}^{\texttt{n}-1} (x_i - z_i) \Big| = |0 + (x_j - z_j)| \leq |\texttt{U-L}| = \texttt{U-L},
+% \]
+% since \texttt{U} $\geq$ \texttt{L}.
+
+% We remark that because we do not have overflows and have an integer type, the sums are computed exactly, and so $\MultiSet(z)=\MultiSet(y)$ implies $\sum_i z_i = \sum_i y_i$. For example, this is not true for floating point types.
 
 % commented out the below per the comment at https://github.com/opendp/whitepapers/pull/5#discussion_r714428139. Feel free to restore.
 
