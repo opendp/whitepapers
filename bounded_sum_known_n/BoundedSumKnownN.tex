@@ -46,7 +46,7 @@
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\A}{\mathbb{A}}
 
-\usepackage{listings}
+\usepackage{listings, listings-rust}
 \usepackage{xcolor}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -128,21 +128,6 @@ When looking for definitions for terms that appear in this document, the followi
     \item \textbf{Proof definitions document:} This file uses the version of the proof definitions document available as of September 23, 2021, which can be found at \href{https://github.com/opendp/whitepapers/blob/proof-defns/proof-defns/proof_defns.pdf}{this link} (archived \href{https://github.com/opendp/whitepapers/blob/f43bf7056a5fd3b6f7b4bb77d451eafa042fe8f7/proof-defns/proof_defns.pdf}{here}). 
 \end{itemize}
 
-\section{Current discrepancies between the Rust implementation and the proof}
-
-To guarantee the correctness of the proof, we highlight the discrepancies that this pseudocode and proof have with respect to the actual Rust implementation:
-\begin{itemize}
-    \item The pseudocode implementation makes the necessary checks with \texttt{checked\_mul} to avoid overflow issues when computing the stability relation. 
-    \item The Rust code does not impose the restriction for \texttt{T} to be an integer type. As noted in the initial warning, the current stability relation only guarantees correctness for integer types.
-    \item The Rust code uses the stability relation $\dout \geq \din \cdot (\texttt{U}-\texttt{L})/2$ instead of the relation found in the pseudocode, namely $2\cdot \dout \geq \texttt{inf\_cast}(\din, \texttt{T})\cdot (\texttt{U}-\texttt{L})$. There is already a PR to resolve this discrepancy: \url{https://github.com/opendp/opendp/pull/315}.
-    \item The Rust code does not check for possible overflow errors when performing the arithmetic operation $\texttt{U}-\texttt{L}$, whereas the current pseudocode includes a \texttt{checked\_sub} for it.
-    \item The Rust code does not include an \texttt{inf\_cast} in the stability relation, which is necessary for type correctness, but there is already a PR that resolves this discrepancy: \url{https://github.com/opendp/opendp/blob/493fe87273adca3294551faa927039b755c1756e/rust/opendp/src/trans/sum/mod.rs#L65-L94}.
-    \item The previous PR also includes the new user-specified type trait \texttt{InfDiv}, which the current pseudocode does not include.
-\end{itemize}
-
-These changes will soon be applied to the Rust code. The pseudocode also uses the variable \texttt{n} instead of Rust's \texttt{size}, which is more conventional for proof writing.
-
-
 \section{Algorithm Implementation}
 \subsection{Code in Rust}
 The current OpenDP library contains the transformation \texttt{make\_bounded\_sum\_n} implementing the bounded sum function with known $n$. This is defined in lines 29-49 of the file \texttt{mod.rs} in the Git repository\footnote{Updated on September 20, 2021.} (\url{https://github.com/opendp/opendp/blob/8bbb0fab1da9b86c50235a36d7026189be43b1ab/rust/opendp/src/trans/sum/mod.rs#L29-L49}).
@@ -153,15 +138,32 @@ The current OpenDP library contains the transformation \texttt{make\_bounded\_su
     %\label{fig:code}
 %\end{figure}
 
-\begin{figure}[ht]
-    \includegraphics[width=15cm]{bounded_sum_n_new.png}
-    \centering
-    \label{fig:code}
-\end{figure}
+\begin{lstlisting}[language = Rust]
+pub fn make_sized_bounded_sum<T>(
+    size: usize, bounds: (T, T)
+) -> Fallible<Transformation<SizedDomain<VectorDomain<BoundedDomain<T>>>, AllDomain<T>, SymmetricDistance, AbsoluteDistance<T>>>
+    where T: DistanceConstant<IntDistance> + Sub<Output=T>, for <'a> T: Sum<&'a T> + ExactIntCast<usize> + CheckedMul + CheckNull,
+          IntDistance: InfCast<T> {
+    let size_ = T::exact_int_cast(size)?;
+    let (lower, upper) = bounds.clone();
+    if lower.checked_mul(&size_).is_none()
+        || upper.checked_mul(&size_).is_none() {
+        return fallible!(MakeTransformation, "Detected potential for overflow when computing function.")
+    }
+    Ok(Transformation::new(
+        SizedDomain::new(VectorDomain::new(
+            BoundedDomain::new_closed(bounds)?), size),
+        AllDomain::new(),
+        Function::new(|arg: &Vec<T>| arg.iter().sum()),
+        SymmetricDistance::default(),
+        AbsoluteDistance::default(),
+        StabilityRelation::new_from_constant((upper - lower) / T::exact_int_cast(2)?)))
+}
+\end{lstlisting}
 
-\subsection{Pseudocode in Python}
+\subsection{Pseudocode}
 \label{sec:pseudocode}
-We present a simplified Python-like pseudocode of the Rust implementation below. The necessary definitions for the pseudocode can be found in Section \ref{sec:versioned-docs}.
+We present pseudocode represenation of the \texttt{MakeBoundedSumN} function below. The necessary definitions for the pseudocode can be found in Section \ref{sec:versioned-docs}.
 
 \subsubsection*{Preconditions}
 To ensure the correctness of the output, we require the following preconditions:
@@ -205,6 +207,20 @@ def MakeBoundedSumN(L: T, U: T, n: usize):
     
     return Transformation(input_domain, output_domain, function, input_metric, output_metric, stability_relation = relation)
 \end{lstlisting}
+
+\section{Current discrepancies between the Rust implementation and the proof}
+
+To guarantee the correctness of the proof, we highlight the discrepancies that this pseudocode and proof have with respect to the actual Rust implementation:
+\begin{itemize}
+    \item The pseudocode implementation makes the necessary checks with \texttt{checked\_mul} to avoid overflow issues when computing the stability relation. 
+    \item The Rust code does not impose the restriction for \texttt{T} to be an integer type. As noted in the initial warning, the current stability relation only guarantees correctness for integer types.
+    \item The Rust code uses the stability relation $\dout \geq \din \cdot (\texttt{U}-\texttt{L})/2$ instead of the relation found in the pseudocode, namely $2\cdot \dout \geq \texttt{inf\_cast}(\din, \texttt{T})\cdot (\texttt{U}-\texttt{L})$. There is already a PR to resolve this discrepancy: \url{https://github.com/opendp/opendp/pull/315}.
+    \item The Rust code does not check for possible overflow errors when performing the arithmetic operation $\texttt{U}-\texttt{L}$, whereas the current pseudocode includes a \texttt{checked\_sub} for it.
+    \item The Rust code does not include an \texttt{inf\_cast} in the stability relation, which is necessary for type correctness, but there is already a PR that resolves this discrepancy: \url{https://github.com/opendp/opendp/blob/493fe87273adca3294551faa927039b755c1756e/rust/opendp/src/trans/sum/mod.rs#L65-L94}.
+    \item The previous PR also includes the new user-specified type trait \texttt{InfDiv}, which the current pseudocode does not include.
+\end{itemize}
+
+These changes will soon be applied to the Rust code. The pseudocode also uses the variable \texttt{n} instead of Rust's \texttt{size}, which is more conventional for proof writing.
 
 \section{Proof}
 \subsection{Symmetric Distance}
